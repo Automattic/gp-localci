@@ -46,11 +46,11 @@ class GP_LocalCI_DB_Adapter {
 		$where = implode( ' AND ', $where );
 
 		return $wpdb->get_results(
-			"SELECT `gp_originals`.`id` as `original_id`, `context`, `singular`, `plural`, `gp_translations`.`id` as `translation_id`, `locale`
-             FROM `gp_originals`
-              JOIN `gp_translations` ON ( `gp_originals`.`id` = `gp_translations`.`original_id` )
-			  JOIN `gp_translation_sets` ON ( `gp_translations`.`translation_set_id` = `gp_translation_sets`.`id` )
-			 WHERE $where AND `gp_originals`.`status` = '+active' AND `gp_translations`.`status` = 'current'"
+           "SELECT `gp_originals`.`id` as `original_id`, `context`, `singular`, `plural`, `gp_translations`.`id` as `translation_id`, `locale`
+            FROM `gp_originals`
+             JOIN `gp_translations` ON ( `gp_originals`.`id` = `gp_translations`.`original_id` )
+             JOIN `gp_translation_sets` ON ( `gp_translations`.`translation_set_id` = `gp_translation_sets`.`id` )
+            WHERE $where AND `gp_originals`.`status` = '+active' AND `gp_translations`.`status` = 'current'"
 		 );
 	}
 
