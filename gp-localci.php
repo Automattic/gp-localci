@@ -10,7 +10,8 @@
  *  Put this file in the folder: /glotpress/plugins/
  */
 
-require __DIR__ . '/includes/gp-localci-db-adapter.php';
+require __DIR__ . '/includes/ci-adapters.php';
+require __DIR__ . '/includes/db-adapter.php';
 
 define( 'LOCALCI_DESIRED_LOCALES', '' );
 define( 'LOCALCI_DEBUG_EMAIL', '' );
@@ -28,25 +29,21 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
-		$json = json_decode( file_get_contents( 'php://input' ) );
+		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
+		$db        = $this->get_gp_db_adapter();
 
-		$owner = $json->payload->username;
-		$repo  = $json->payload->reponame;
-		$sha   = $json->payload->vcs_revision;
+		$owner = $build_ci->get_build_owner();
+		$repo  = $build_ci->get_build_repo();
+		$sha   = $build_ci->get_build_sha();
 
 		if ( $this->is_locked( $sha ) ) {
 			$this->die_with_error( "Rate limit exceeded.", 429 );
 		}
 
-		$response = $this->safe_get( $json_payload->build_url );
+		$po          = $build_ci->get_new_strings_po();
+		$project_id  = $build_ci->get_gp_project_id();
 
-		if ( empty( $response ) || is_wp_error( $response ) ) {
-			$this->die_with_error( "Artifact pull failed.", 400 );
-		}
-
-		$db = new GP_LocalCI_DB_Adapter();
-
-		$coverage    = $db->get_string_coverage( $po_file, $project_id );
+		$coverage    = $db->get_string_coverage( $po, $project_id );
 		$stats       = $db->generate_coverage_stats( $coverage );
 		$suggestions = $db->generate_string_suggestions( $coverage );
 
@@ -67,6 +64,20 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 	public function post_to_gh_status_api( $owner, $repo, $sha, $stats ) {
 		return wp_safe_remote_post( GITHUB_API_URL . "/repos/$owner/$repo/statuses/$sha", $stats );
+	}
+
+
+
+	/**
+	 * The nitty gritty details
+	 */
+	private function get_gp_db_adapter() {
+		return new GP_LocalCI_DB_Adapter();
+	}
+
+	private function get_ci_adapter( $ci ) {
+		$ci_adapter = 'GP_LocalCI_' . $ci . '_Adapter';
+		return new $ci_adapter;
 	}
 
 	private function is_locked( $sha ) {
