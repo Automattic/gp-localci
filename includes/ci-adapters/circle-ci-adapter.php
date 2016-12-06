@@ -28,6 +28,13 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 	}
 
 	function get_gp_project_id() {
+
+	public function safe_get( $url ) {
+		if ( ! gp_startswith( $url, 'https://circleci.com' ) ) {
+			return new WP_Error;
+		}
+
+		return wp_remote_get( $url, array() );
 	}
 }
 

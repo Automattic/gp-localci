@@ -88,26 +88,6 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		set_transient( 'localci_sha_lock', $sha, HOUR_IN_SECONDS );
 		return false;
 	}
-
-	private function safe_get( $url ) {
-		$safe = false;
-		$whitelisted_domains = array(
-			'https://circleci.com'
-		);
-
-		foreach ( $whitelisted_domains as $domain ) {
-			if ( gp_startswith( $url, $domain ) ) {
-				$safe = true;
-				break;
-			}
-		}
-
-		if ( ! $safe ) {
-			return new WP_Error;
-		}
-
-		return wp_remote_get( $url, array() );
-	}
 }
 
 class GP_LocalCI_API_Loader {
