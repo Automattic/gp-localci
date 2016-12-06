@@ -5,9 +5,9 @@
  *  and associated messaging coordination between Github and an external
  *  CI build system (eg, CircleCI, TravisCI).
  *
- *  Requires PHP7.0.0 or greater.
+ *  Requires PHP 7.0.0 or greater.
  *
- *  Put this file in the folder: /glotpress/plugins/
+ *  Put this plugin in the folder: /glotpress/plugins/
  */
 
 require __DIR__ . '/includes/ci-adapters.php';
@@ -21,7 +21,7 @@ define( 'LOCALCI_GITHUB_API_MANAGEMENT_TOKEN', '' );
 
 class GP_Route_LocalCI extends GP_Route_Main {
 	public function __construct() {
-		$this->template_path = dirname( __FILE__ ) . '/templates/';
+		$this->template_path = __DIR__ . '/templates/';
 	}
 
 	public function relay_new_strings_to_gh() {
@@ -53,7 +53,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( "GH status update failed.", 400 );
 		}
 
-		$this->tmpl( 'localci-status-ok' );
+		$this->tmpl( 'status-ok' );
 	}
 
 	public function relay_string_freeze_from_gh() {
@@ -96,7 +96,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		);
 
 		foreach ( $whitelisted_domains as $domain ) {
-			if ( 0 === strpos( $url, $domain ) ) {
+			if ( gp_startswith( $url, $domain ) ) {
 				$safe = true;
 				break;
 			}
