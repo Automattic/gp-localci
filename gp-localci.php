@@ -34,7 +34,13 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$gh_data   = $build_ci->get_gh_data();
 
 		if ( ! $this->is_gh_data_valid( $gh_data ) ) {
+			$this->die_with_error( "Invalid Github data.", 400 );
+		}
 
+		if ( 'master' == $gh_data->branch ) {
+			$this->tmpl( 'status-ok' );
+			exit;
+		}
 
 		if ( $this->is_locked( $gh_data->sha ) ) {
 			$this->die_with_error( "Rate limit exceeded.", 429 );
@@ -42,6 +48,10 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		$po          = $build_ci->get_new_strings_po();
 		$project_id  = $build_ci->get_gp_project_id();
+
+		if ( empty( $po ) || ! is_numeric( $project_id ) || $project_id < 1 ) {
+			$this->die_with_error( "Invalid GlotPress data.", 400 );
+		}
 
 		$coverage    = $db->get_string_coverage( $po, $project_id );
 		$stats       = $db->generate_coverage_stats( $coverage );
@@ -80,8 +90,26 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		return new $ci_adapter;
 	}
 
+	private function is_github_data_valid( $data ) {
+		if ( empty( $data->owner ) || empty( $data->repo )
+			|| empty( $data->sha ) || empty( $data->branch ) ) {
+			return false;
+		}
+
+		if ( ! is_string( $data->owner ) || ! is_string( $data->repo )
+			|| ! is_string( $data->branch ) || ! is_string( $data->sha ) ) {
+			return false;
+		}
+
+		if ( '40' !== strlen( $data->sha ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
 	private function is_locked( $sha ) {
-		if ( get_transient( 'localci_sha_lock') === $sha ) {
+		if ( get_transient( 'localci_sha_lock' ) === $sha ) {
 			return true;
 		}
 
