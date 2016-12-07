@@ -29,14 +29,14 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
-		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
 		$db        = $this->get_gp_db_adapter();
+		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
+		$gh_data   = $build_ci->get_gh_data();
 
-		$owner = $build_ci->get_build_owner();
-		$repo  = $build_ci->get_build_repo();
-		$sha   = $build_ci->get_build_sha();
+		if ( ! $this->is_gh_data_valid( $gh_data ) ) {
 
-		if ( $this->is_locked( $sha ) ) {
+
+		if ( $this->is_locked( $gh_data->sha ) ) {
 			$this->die_with_error( "Rate limit exceeded.", 429 );
 		}
 
@@ -47,7 +47,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$stats       = $db->generate_coverage_stats( $coverage );
 		$suggestions = $db->generate_string_suggestions( $coverage );
 
-		$response = $this->post_to_gh_status_api( $owner, $repo, $sha, $stats );
+		$response = $this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats );
 
 		if ( is_wp_error( $response ) || 201 != $response['status_code'] ) {
 			$this->die_with_error( "GH status update failed.", 400 );

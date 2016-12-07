@@ -7,19 +7,15 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		$this->payload = $json->payload;
 	}
 
-	function get_build_owner() {
-		return $this->payload->username;
+	public function get_gh_data() {
+		return (object) array(
+			'owner'  => $this->payload->username,
+			'repo'   => $this->payload->reponame,
+			'sha'    => $this->payload->vcs_revision,
+			'branch' => $this->payload->branch,
+		);
 	}
 
-	function get_build_repo() {
-		return $this->payload->reponame;
-	}
-
-	function get_build_sha() {
-		return $this->payload->vcs_revision;
-	}
-
-	function get_new_strings_po() {
 		$response = $this->safe_get( $this->payload->build_url );
 
 		if ( empty( $response ) || is_wp_error( $response ) ) {
