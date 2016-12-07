@@ -2,7 +2,7 @@
 class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 	private $payload;
 
-	function __construct() {
+	public function __construct() {
 		$json = json_decode( file_get_contents( 'php://input' ) );
 		$this->payload = $json->payload;
 	}
@@ -16,6 +16,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		);
 	}
 
+	public function get_new_strings_po() {
 		$response = $this->safe_get( $this->payload->build_url );
 
 		if ( empty( $response ) || is_wp_error( $response ) ) {
@@ -23,7 +24,8 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		}
 	}
 
-	function get_gp_project_id() {
+	public function get_gp_project_id() {
+	}
 
 	public function safe_get( $url ) {
 		if ( ! gp_startswith( $url, 'https://circleci.com' ) ) {
