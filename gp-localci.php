@@ -33,7 +33,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
 		$gh_data   = $build_ci->get_gh_data();
 
-		if ( ! $this->is_gh_data_valid( $gh_data ) ) {
+		if ( ! $this->is_github_data_valid( $gh_data ) ) {
 			$this->die_with_error( "Invalid Github data.", 400 );
 		}
 
@@ -97,11 +97,11 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( ! is_string( $data->owner ) || ! is_string( $data->repo )
-			|| ! is_string( $data->branch ) || ! is_string( $data->sha ) ) {
+			|| ! is_string( $data->sha ) || ! is_string( $data->branch ) ) {
 			return false;
 		}
 
-		if ( '40' !== strlen( $data->sha ) ) {
+		if ( 40 !== strlen( $data->sha ) ) {
 			return false;
 		}
 
