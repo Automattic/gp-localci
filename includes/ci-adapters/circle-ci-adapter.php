@@ -7,6 +7,10 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		$this->payload = $json->payload;
 	}
 
+	public function get_payload() {
+		return $this->payload;
+	}
+
 	public function get_gh_data() {
 		return (object) array(
 			'owner'  => $this->payload->username,
