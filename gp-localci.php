@@ -46,7 +46,13 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( "Rate limit exceeded.", 429 );
 		}
 
-		$po          = $build_ci->get_new_strings_po();
+		// Temporary while we watch what comes through
+		wp_mail( 'hew@automattic.com', 'LocalCI debug dump', print_r( $build_ci->get_payload(), true ) );
+		$this->tmpl( 'status-ok' );
+		exit;
+		// Temporary while we watch what comes through
+
+		$po          = $build_ci->get_new_strings_po( $gh_data->branch );
 		$project_id  = $build_ci->get_gp_project_id();
 
 		if ( empty( $po ) || ! is_numeric( $project_id ) || $project_id < 1 ) {
