@@ -10,13 +10,9 @@
  *  Put this plugin in the folder: /glotpress/plugins/
  */
 
+require __DIR__ . 'config.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
-
-define( 'LOCALCI_DESIRED_LOCALES', '' );
-define( 'LOCALCI_DEBUG_EMAIL', '' );
-define( 'LOCALCI_GITHUB_API_URL', 'https://api.github.com' );
-define( 'LOCALCI_GITHUB_API_MANAGEMENT_TOKEN', '' );
 
 
 class GP_Route_LocalCI extends GP_Route_Main {
