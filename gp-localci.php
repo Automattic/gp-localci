@@ -47,6 +47,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$this->tmpl( 'status-ok' );
 		exit;
 		// Temporary while we watch what comes through
+		$this->set_lock( $gh_data->sha );
 
 		$po          = $build_ci->get_new_strings_po( $gh_data->branch );
 		$po_file     = $build_ci->get_new_strings_pot();
@@ -112,12 +113,34 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	private function is_locked( $sha ) {
-		if ( get_transient( 'localci_sha_lock' ) === $sha ) {
-			return true;
+		$shas = get_transient( 'localci_sha_lock' );
+
+		if ( ! isset( $shas[$sha] ) ) {
+			return false;
 		}
 
-		set_transient( 'localci_sha_lock', $sha, HOUR_IN_SECONDS );
-		return false;
+		if ( $this->has_lock_expired( $shas[$sha] ) ) {
+			unset( $shas[$sha] );
+			set_transient( 'localci_sha_lock', $shas, HOUR_IN_SECONDS );
+			return false;
+		}
+
+		return true;
+	}
+
+	private function set_lock( $sha ) {
+		$shas = get_transient( 'localci_sha_lock' );
+
+		if ( empty( $shas ) || ! is_array( $shas ) ) {
+			$shas = array();
+		}
+
+		$shas[$sha] = time();
+		set_transient( 'localci_sha_lock', $shas, HOUR_IN_SECONDS );
+	}
+
+	private function has_lock_expired( $sha_lock_time ) {
+		return $sha_lock_time + HOUR_IN_SECONDS < time();
 	}
 }
 
