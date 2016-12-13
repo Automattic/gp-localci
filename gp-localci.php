@@ -43,11 +43,6 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( "Rate limit exceeded.", 429 );
 		}
 
-		// Temporary while we watch what comes through
-		wp_mail( 'hew@automattic.com', 'LocalCI debug dump', print_r( $build_ci->get_payload(), true ) );
-		$this->tmpl( 'status-ok' );
-		exit;
-		// Temporary while we watch what comes through
 		$this->set_lock( $gh_data->sha );
 
 		$po_file     = $build_ci->get_new_strings_pot();
@@ -67,11 +62,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$stats       = localci_generate_coverage_stats( $po, $coverage );
 
 
-		$response = $this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats );
-
-		if ( is_wp_error( $response ) || 201 != $response['status_code'] ) {
-			$this->die_with_error( "GH status update failed.", 400 );
-		}
+		$response = $this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats['summary'] );
 
 		$this->tmpl( 'status-ok' );
 	}
@@ -80,8 +71,20 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// @TODO
 	}
 
-	public function post_to_gh_status_api( $owner, $repo, $sha, $stats ) {
-		return wp_safe_remote_post( GITHUB_API_URL . "/repos/$owner/$repo/statuses/$sha", $stats );
+	public function post_to_gh_status_api( $owner, $repo, $sha, $localci_summary ) {
+		return wp_safe_remote_post( LOCALCI_GITHUB_API_URL . "/repos/$owner/$repo/statuses/$sha", array(
+			'headers' => array(
+				'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
+			),
+			'body' => json_encode( array(
+				'state' => 'success',
+				'description' => $localci_summary,
+				'context' => 'ci/i18n'
+			) ),
+			'blocking' => false,
+			'timeout' => 30,
+			'user-agent' => 'LocalCI/GP v1.0'
+		) );
 	}
 
 
