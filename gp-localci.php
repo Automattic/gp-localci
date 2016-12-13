@@ -147,7 +147,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	private function has_lock_expired( $sha_lock_time ) {
-		return $sha_lock_time + HOUR_IN_SECONDS < time();
+		return time() > $sha_lock_time + HOUR_IN_SECONDS;
 	}
 }
 
