@@ -53,10 +53,14 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$po_file     = $build_ci->get_new_strings_pot();
 		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
 
-		if ( empty( $po ) || ! is_numeric( $project_id ) || $project_id < 1 ) {
+		if ( false === $po_file || false === $project_id ) {
 			$this->die_with_error( "Invalid GlotPress data.", 400 );
 		}
 
+		if ( empty( $po_file ) ) {
+			$this->tmpl( 'status-ok' );
+			exit;
+		}
 
 		$po          = localci_load_po( $po_file );
 		$coverage    = $db->get_string_coverage( $po, $project_id );
