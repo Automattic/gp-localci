@@ -10,7 +10,7 @@
  *  Put this plugin in the folder: /glotpress/plugins/
  */
 
-require __DIR__ . 'config.php';
+require __DIR__ . '/config.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
 
@@ -49,7 +49,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// Temporary while we watch what comes through
 
 		$po          = $build_ci->get_new_strings_po( $gh_data->branch );
-		$project_id  = $build_ci->get_gp_project_id();
+		$po_file     = $build_ci->get_new_strings_pot();
+		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
 
 		if ( empty( $po ) || ! is_numeric( $project_id ) || $project_id < 1 ) {
 			$this->die_with_error( "Invalid GlotPress data.", 400 );
