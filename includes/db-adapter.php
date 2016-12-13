@@ -1,26 +1,12 @@
 <?php
 class GP_LocalCI_DB_Adapter {
 	public function get_string_coverage( $po_obj_or_file, $project_id ) {
-		$po = new PO();
-
-		if ( is_string( $po_obj_or_file ) && file_exists( $po_obj_or_file ) ) {
-			$po->import_from_file( $po_obj_or_file );
-		} else if ( is_string( $po_obj_or_file ) ) {
-			$po->import_from_file( 'data://text/plain,' . urlencode( $po_obj_or_file ) );
-		} else {
-			return false;
-		}
+		$po = localci_load_po( $po_obj_or_file );
 
 		$result = $this->get_cross_locale_translated_status( $po->entries, $project_id );
 		$coverage = $this->filter_cross_locale_translated_status( $result );
 
 		return $coverage;
-	}
-
-	public function generate_coverage_stats( $coverage ) {
-	}
-
-	public function generate_string_suggestions( $coverage ) {
 	}
 
 	private function get_cross_locale_translated_status( $po_entries, $project_id ) {

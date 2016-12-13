@@ -13,6 +13,7 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
+require __DIR__ . '/includes/localci-functions.php';
 
 
 class GP_Route_LocalCI extends GP_Route_Main {
@@ -25,8 +26,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
-		$db        = $this->get_gp_db_adapter();
 		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
+		$db        = $this->get_gp_db_adapter();
 		$gh_data   = $build_ci->get_gh_data();
 
 		if ( ! $this->is_github_data_valid( $gh_data ) ) {
@@ -49,7 +50,6 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// Temporary while we watch what comes through
 		$this->set_lock( $gh_data->sha );
 
-		$po          = $build_ci->get_new_strings_po( $gh_data->branch );
 		$po_file     = $build_ci->get_new_strings_pot();
 		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
 
@@ -57,9 +57,11 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( "Invalid GlotPress data.", 400 );
 		}
 
+
+		$po          = localci_load_po( $po_file );
 		$coverage    = $db->get_string_coverage( $po, $project_id );
-		$stats       = $db->generate_coverage_stats( $coverage );
-		$suggestions = $db->generate_string_suggestions( $coverage );
+		$stats       = localci_generate_coverage_stats( $po, $coverage );
+
 
 		$response = $this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats );
 
@@ -71,9 +73,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function relay_string_freeze_from_gh() {
-	}
-
-	public function invoke_ci_build() {
+		// @TODO
 	}
 
 	public function post_to_gh_status_api( $owner, $repo, $sha, $stats ) {
