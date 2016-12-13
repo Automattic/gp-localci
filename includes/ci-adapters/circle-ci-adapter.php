@@ -33,6 +33,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		$url   = LOCALCI_CIRCLECI_API_URL . "/project/{$path}/artifacts?circle-token={$token}";
 
 		$response = wp_remote_get( esc_url_raw( $url ) );
+
 		if ( empty( $response ) || is_wp_error( $response ) ) {
 			return false;
 		}

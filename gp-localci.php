@@ -57,10 +57,9 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			exit;
 		}
 
-		$po          = localci_load_po( $po_file );
-		$coverage    = $db->get_string_coverage( $po, $project_id );
-		$stats       = localci_generate_coverage_stats( $po, $coverage );
-
+		$po        = localci_load_po( $po_file );
+		$coverage  = $db->get_string_coverage( $po, $project_id );
+		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
 		$response = $this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats['summary'] );
 
