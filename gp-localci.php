@@ -53,6 +53,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( empty( $po_file ) ) {
+			$this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, "0 new strings. ¡Ándale!" );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
