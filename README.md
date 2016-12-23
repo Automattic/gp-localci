@@ -22,20 +22,23 @@ gp-localci is a Github-oriented localization continuous integration add-on to Gl
 ```
 
 ## .pot Generation
-If using the CircleCI adapter (presumably), add logic to your Circle YAML config to generate a pot of new strings at `$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot`. We recommend `msgcat -u` to do the heavy lifting. For example:
+If using the CircleCI adapter (presumably), add logic to your Circle YAML config to generate a pot of new strings at `$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot.
 
 ```
-? |
-  I18N_DIR=$CIRCLE_ARTIFACTS/translate;
-  mkdir -p $I18N_DIR;
-  make translate;
-  mv calypso-strings.pot $I18N_DIR/calypso-strings.pot;
-  if [[ $CIRCLE_BRANCH != "master" ]]; then
-    git merge-base --fork-point master | xargs git checkout;
-    make translate;
-    mv calypso-strings.pot $I18N_DIR/calypso-strings-master.pot;
-    cp $I18N_DIR/calypso-strings-master.pot $I18N_DIR/calypso-strings-master-copy.pot;
-    msgcat -u $I18N_DIR/calypso-strings*.pot > $I18N_DIR/localci-new-strings.pot;
-    rm $I18N_DIR/calypso-strings-master-copy.pot;
-  fi;
+post:
+  - |
+     if [[ "$CIRCLE_BRANCH" != "master" ]]; then
+       git clone https://github.com/Automattic/gp-localci-client.git
+       bash gp-localci-client/generate-new-strings-pot.sh $CIRCLE_BRANCH $CIRCLE_SHA1 $CIRCLE_ARTIFACTS/translate
+       rm -rf gp-localci-client
+     fi
+```
+
+## Integration
+Add a CircleCI webhook (in the YAML config) pointing to your GlotPress instance like so:
+
+```
+notify:
+  webhooks:
+    - url: https://glotpressinstance.example.com/api/localci/-relay-new-strings-to-gh
  ```
