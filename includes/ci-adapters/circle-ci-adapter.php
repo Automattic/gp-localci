@@ -52,7 +52,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
-		$response = wp_remote_get( esc_url_raw( $new_strings_artifact->url ) );
+		$response = wp_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ) );
 
 		return wp_remote_retrieve_body( $response );
 	}
