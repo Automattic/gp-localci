@@ -13,11 +13,16 @@
 require __DIR__ . '/config.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
+require __DIR__ . '/includes/gh-adapter.php';
 require __DIR__ . '/includes/localci-functions.php';
 
 
 class GP_Route_LocalCI extends GP_Route_Main {
 	public function __construct() {
+		$this->ci = $this->get_ci_adapter( LOCALCI_BUILD_CI );
+		$this->db = new GP_LocalCI_DB_Adapter();
+		$this->gh = new GP_LocalCI_Github_Adapter();
+
 		$this->template_path = __DIR__ . '/templates/';
 	}
 
@@ -26,11 +31,9 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
-		$build_ci  = $this->get_ci_adapter( LOCALCI_BUILD_CI );
-		$db        = $this->get_gp_db_adapter();
-		$gh_data   = $build_ci->get_gh_data();
+		$gh_data = $this->ci->get_gh_data();
 
-		if ( ! $this->is_github_data_valid( $gh_data ) ) {
+		if ( ! $this->gh->is_data_valid( $gh_data ) ) {
 			$this->die_with_error( "Invalid Github data.", 400 );
 		}
 
@@ -45,7 +48,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		$this->set_lock( $gh_data->sha );
 
-		$po_file     = $build_ci->get_new_strings_pot();
+		$po_file     = $this->ci->get_new_strings_pot();
 		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
 
 		if ( false === $po_file || false === $project_id ) {
@@ -53,16 +56,16 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( empty( $po_file ) ) {
-			$this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, "0 new strings. ¡Ándale!" );
+			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, "0 new strings. ¡Ándale!" );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
 
 		$po        = localci_load_po( $po_file );
-		$coverage  = $db->get_string_coverage( $po, $project_id );
+		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
-		$this->post_to_gh_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats['summary'] );
+		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats['summary'] );
 		$this->tmpl( 'status-ok' );
 	}
 
@@ -70,20 +73,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// @TODO
 	}
 
-	public function post_to_gh_status_api( $owner, $repo, $sha, $localci_summary ) {
-		return wp_safe_remote_post( LOCALCI_GITHUB_API_URL . "/repos/$owner/$repo/statuses/$sha", array(
-			'headers' => array(
-				'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
-			),
-			'body' => json_encode( array(
-				'state' => 'success',
-				'description' => $localci_summary,
-				'context' => 'ci/i18n'
-			) ),
-			'blocking' => false,
-			'timeout' => 30,
-			'user-agent' => 'LocalCI/GP v1.0'
-		) );
+		if ( empty( $most_recent_pot ) ) {
 	}
 
 
@@ -91,31 +81,9 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	/**
 	 * The nitty gritty details
 	 */
-	private function get_gp_db_adapter() {
-		return new GP_LocalCI_DB_Adapter();
-	}
-
 	private function get_ci_adapter( $ci ) {
 		$ci_adapter = 'GP_LocalCI_' . $ci . '_Adapter';
 		return new $ci_adapter;
-	}
-
-	private function is_github_data_valid( $data ) {
-		if ( empty( $data->owner ) || empty( $data->repo )
-			|| empty( $data->sha ) || empty( $data->branch ) ) {
-			return false;
-		}
-
-		if ( ! is_string( $data->owner ) || ! is_string( $data->repo )
-			|| ! is_string( $data->sha ) || ! is_string( $data->branch ) ) {
-			return false;
-		}
-
-		if ( 40 !== strlen( $data->sha ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	private function is_locked( $sha ) {
