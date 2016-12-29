@@ -21,7 +21,7 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	public function is_valid_request( $owner, $repo ) {
-		return hash_equals( $this->headers['X-Hub-Signature'], $this->generated_webhook_signature( $owner, $repo ) );
+		return hash_equals( $this->headers['X-Hub-Signature'], $this->generate_webhook_signature( $owner, $repo ) );
 	}
 
 	public function is_data_valid( $data ) {
