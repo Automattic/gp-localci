@@ -70,11 +70,26 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function relay_string_freeze_from_gh() {
-		// @TODO
-	}
+		if ( ! $this->gh->is_valid_request() ) {
+			$this->die_with_error( "Invalid request.", 401 );
+		}
+
+		if ( ! $this->is_webhook_label_created() ) {
+			$this->tmpl( 'status-ok' );
+			exit;
+		}
+
+		$gh_data = $this->gh->get_repo_data();
+		$most_recent_pot = $this->ci->get_most_recent_pot( $gh_data->owner, $gh_data->repo, $gh_data->branch );
 
 		if ( empty( $most_recent_pot ) ) {
+			$this->tmpl( 'status-ok' );
+			exit;
+		}
+
+		wp_mail( 'hew@automattic.com', 'LocalCI Debug GH', print_r( $this->gh, true ) );
 	}
+
 
 
 
@@ -125,6 +140,7 @@ class GP_LocalCI_API_Loader {
 
 	function init_new_routes() {
 		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
+		GP::$router->add( '/localci/-relay-string-freeze-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_from_gh' ), 'post' );
 	}
 }
 
