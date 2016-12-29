@@ -1,7 +1,7 @@
 <?php
 class GP_LocalCI_Github_Adapter {
 	public function __construct() {
-		if ( ! gp_startswith( $_SERVER['HTTP_USER_AGENT'], 'GitHub-Hookshot' ) ) {
+		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) || ! gp_startswith( $_SERVER['HTTP_USER_AGENT'], 'GitHub-Hookshot' ) ) {
 			return false;
 		}
 

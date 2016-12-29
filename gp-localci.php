@@ -10,7 +10,10 @@
  *  Put this plugin in the folder: /glotpress/plugins/
  */
 
-require __DIR__ . '/config.php';
+if ( ! GP_LOCALCI_UNIT_TEST ) {
+	require __DIR__ . '/config.php';
+}
+
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
 require __DIR__ . '/includes/gh-adapter.php';
@@ -18,10 +21,10 @@ require __DIR__ . '/includes/localci-functions.php';
 
 
 class GP_Route_LocalCI extends GP_Route_Main {
-	public function __construct() {
-		$this->ci = $this->get_ci_adapter( LOCALCI_BUILD_CI );
-		$this->db = new GP_LocalCI_DB_Adapter();
-		$this->gh = new GP_LocalCI_Github_Adapter();
+	public function __construct( $ci = null, $db = null, $gh = null ) {
+		$this->ci = isset( $ci ) ? $ci : $this->get_ci_adapter( LOCALCI_BUILD_CI );
+		$this->db = isset( $db ) ? $db : new GP_LocalCI_DB_Adapter();
+		$this->gh = isset( $gh ) ? $gh : new GP_LocalCI_Github_Adapter();
 
 		$this->template_path = __DIR__ . '/templates/';
 	}

@@ -15,6 +15,10 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 	}
 
 	public function get_gh_data() {
+		if ( ! is_object( $this->payload ) ) {
+			return false;
+		}
+
 		return (object) array(
 			'owner'  => $this->payload->username,
 			'repo'   => $this->payload->reponame,
