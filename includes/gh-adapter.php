@@ -50,7 +50,7 @@ class GP_LocalCI_Github_Adapter {
 		return true;
 	}
 
-	public function is_string_freeze_label_created_event() {
+	public function is_string_freeze_label_added_event() {
 		if ( 'pull_request' !== $this->headers['X-GitHub-Event'] ) {
 			return false;
 		}
@@ -60,6 +60,7 @@ class GP_LocalCI_Github_Adapter {
 		}
 
 		// @todo: match against the label we want
+		return true;
 	}
 
 	public function post_to_status_api( $owner, $repo, $sha, $localci_summary ) {
