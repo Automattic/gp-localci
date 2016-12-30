@@ -27,3 +27,6 @@ function gp_in( $needle, $haystack ) {
 	return false !== strpos( $haystack, $needle );
 }
 
+function wp_safe_remote_post( $dummy1 ) {
+	return true;
+}

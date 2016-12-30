@@ -25,6 +25,10 @@ class Mock_Build_CI {
 			'branch' => $this->payload->branch,
 		);
 	}
+
+	function get_new_strings_pot() {
+		return '';
+	}
 }
 
 class Mock_DB_Adapter {

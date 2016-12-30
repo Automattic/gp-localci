@@ -46,6 +46,21 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 		$this->gp_localci->relay_new_strings_to_gh();
 	}
 
+	/**
+	 * @expectedException            Exception
+	 * @expectedExceptionMessage     status-ok
+	 */
+	function test_relay_new_strings_to_gh_empty_pot() {
+		$this->gp_localci->ci->payload = (object) array(
+			'owner'  => 'unit-test',
+			'repo'   => 'abc123',
+			'sha'    => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e',
+			'branch' => 'fix/whatever',
+		);
+
+		$this->gp_localci->relay_new_strings_to_gh();
+	}
+
 	function relay_string_freeze_from_gh() {
 	}
 }
