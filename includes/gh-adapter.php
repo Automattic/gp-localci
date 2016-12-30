@@ -5,7 +5,10 @@ class GP_LocalCI_Github_Adapter {
 			return false;
 		}
 
-		$this->headers = getallheaders();
+		$this->headers = array(
+			'X-GitHub-Event'  => $_SERVER['HTTP_X_GITHUB_EVENT'],
+			'X-Hub-Signature' => $_SERVER['HTTP_X_HUB_SIGNATURE'],
+		);
 
 		if ( $_SERVER['HTTP_CONTENT_TYPE'] === 'application/x-www-form-urlencoded' ) {
 			$this->raw_payload = $_POST['payload'];
@@ -14,6 +17,11 @@ class GP_LocalCI_Github_Adapter {
 		}
 
 		$this->payload = json_decode( $this->raw_payload );
+
+		$this->owner   = isset( $this->payload->repository->owner->login ) ? $this->payload->repository->owner->login : false;
+		$this->repo    = isset( $this->payload->repository->name) ? $this->payload->repository->name : false;
+		$this->branch  = isset( $this->payload->pull_request->head->ref ) ? $this->payload->pull_request->head->ref : false;
+		$this->sha     = isset( $this->payload->pull_request->head->sha ) ? $this->payload->pull_request->head->sha : false;
 	}
 
 	public function generate_webhook_signature( $owner, $repo ) {
@@ -42,8 +50,16 @@ class GP_LocalCI_Github_Adapter {
 		return true;
 	}
 
-	public function is_webhook_label_created() {
-		return 'label' !== $this->headers['X-GitHub-Event'] || 'created' !== $this->payload->action;
+	public function is_string_freeze_label_created_event() {
+		if ( 'pull_request' !== $this->headers['X-GitHub-Event'] ) {
+			return false;
+		}
+
+		if ( 'labeled' !== $this->payload->action ) {
+			return false;
+		}
+
+		// @todo: match against the label we want
 	}
 
 	public function post_to_status_api( $owner, $repo, $sha, $localci_summary ) {

@@ -61,6 +61,31 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 		$this->gp_localci->relay_new_strings_to_gh();
 	}
 
-	function relay_string_freeze_from_gh() {
+	/**
+	 * @expectedException         Exception
+	 * @expectedExceptionCode     401
+	 */
+	function test_relay_string_freeze_from_gh_invalid_request() {
+		$_SERVER['HTTP_USER_AGENT'] = 'GitHub-Hookshot/Something Something';
+		$_SERVER['HTTP_CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+		$_SERVER['HTTP_X_GITHUB_EVENT'] = 'pull_request';
+		$_SERVER['HTTP_X_HUB_SIGNATURE'] = 'invalid non-matching sig';
+		$_POST['payload'] = json_encode( (object) array(
+			'repository' => (object) array(
+				'owner' => (object) array(
+					'login' => 'unit-test'
+				),
+				'name' => 'abc123'
+			),
+			'pull_request' => (object) array(
+				'head' => (object) array(
+					'ref' => 'fix/whatever',
+					'sha' => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e'
+				)
+			)
+		) );
+
+		$this->gp_localci->gh->__construct();
+		$this->gp_localci->relay_string_freeze_from_gh();
 	}
 }
