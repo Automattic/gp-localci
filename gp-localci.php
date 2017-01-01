@@ -10,7 +10,7 @@
  *  Put this plugin in the folder: /glotpress/plugins/
  */
 
-if ( ! GP_LOCALCI_UNIT_TEST ) {
+if ( ! defined( 'GP_LOCALCI_UNIT_TEST' ) || ! GP_LOCALCI_UNIT_TEST ) {
 	require __DIR__ . '/config.php';
 }
 
