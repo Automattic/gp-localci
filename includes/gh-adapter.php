@@ -59,7 +59,10 @@ class GP_LocalCI_Github_Adapter {
 			return false;
 		}
 
-		// @todo: match against the label we want
+		if ( LOCALCI_GITHUB_STRING_FREEZE_LABEL !== $this->payload->label->name ) {
+			return false;
+		}
+
 		return true;
 	}
 
