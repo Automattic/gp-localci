@@ -39,6 +39,7 @@ function localci_generate_coverage_percent_translated( $num_originals, $num_tran
 }
 
 function localci_generate_coverage_summary( $num_strings, $percent_translated ) {
+	$warning_threshold = 3;
 	$summary = sprintf( _n( '%s new string. ', '%s new strings. ', $num_strings, 'gp_localci' ), $num_strings );
 
 	switch ( true ) {
@@ -52,7 +53,8 @@ function localci_generate_coverage_summary( $num_strings, $percent_translated ) 
 			$summary .= "Translations: {$percent_translated}% coverage.";
 			break;
 		case $percent_translated <= 25:
-			$summary .= "Warning -- {$percent_translated}% translated.";
+			$prefix = $num_strings > $warning_threshold ? "Warning -- " : "Translations: ";
+			$summary .= $prefix . "{$percent_translated}% translated.";
 	}
 
 	return $summary;
