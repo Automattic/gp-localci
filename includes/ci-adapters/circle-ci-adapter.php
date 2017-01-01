@@ -7,7 +7,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 
 	public function __construct() {
 		$json = json_decode( file_get_contents( 'php://input' ) );
-		$this->payload = $json->payload;
+		$this->payload = is_object( $json ) && isset( $json->payload ) ? $json->payload : null;
 	}
 
 	public function get_payload() {
