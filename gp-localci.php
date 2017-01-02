@@ -73,6 +73,10 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function relay_string_freeze_from_gh() {
+		if ( ! $this->api ) {
+			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
+		}
+
 		if ( ! $this->gh->is_valid_request( $this->gh->owner, $this->gh->repo ) ) {
 			$this->die_with_error( "Invalid request.", 401 );
 		}
@@ -82,15 +86,17 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			exit;
 		}
 
-		wp_mail( 'hew@automattic.com', 'LocalCI Debug GH', print_r( $this->gh, true ) );
-		die();
+		// @todo: sleep?
 
-		// @todo: retry if tests pending? sleep?
 		$most_recent_pot = $this->ci->get_most_recent_pot(
 			$this->gh->owner,
 			$this->gh->repo,
 			$this->gh->branch
 		);
+
+		if ( false === $most_recent_pot ) {
+			// @todo: alert someone; this is an error
+		}
 
 		if ( empty( $most_recent_pot ) ) {
 			$this->tmpl( 'status-ok' );
