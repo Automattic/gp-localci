@@ -27,14 +27,40 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		);
 	}
 
-	public function get_new_strings_pot() {
-		if ( ! $this->payload->has_artifacts ) {
-			return false;
+	public function get_most_recent_pot( $username, $reponame, $branch, $vcs_type = 'github' ) {
+		return $this->get_new_strings_pot( array(
+			'build_num' => 'latest',
+			'branch'    => $branch,
+			'reponame'  => $reponame,
+			'username'  => $username,
+			'vcs_type'  => $vcs_type
+		) );
+	}
+
+	public function get_new_strings_pot( $args = array() ) {
+		if ( is_object( $this->payload ) ) {
+			$default_args = array(
+				'build_num'  => $this->payload->build_num,
+				'reponame'   => $this->payload->reponame,
+				'username'   => $this->payload->username,
+				'vcs_type'   => $this->payload->vcs_type
+			);
+		} else {
+			$default_args = array();
 		}
 
-		$path  = "{$this->payload->vcs_type}/{$this->payload->username}/{$this->payload->reponame}/{$this->payload->build_num}";
-		$token = GP_LocalCI_Config::get_value( $this->payload->username, $this->payload->reponame, 'build_ci_api_token' );
+		$args = wp_parse_args( $args, $default_args );
+
+		$path  = "{$args['vcs_type']}/{$args['username']}/{$args['reponame']}/{$args['build_num']}";
+		$token = GP_LocalCI_Config::get_value( $args['username'], $args['reponame'], 'build_ci_api_token' );
 		$url   = LOCALCI_CIRCLECI_API_URL . "/project/{$path}/artifacts?circle-token={$token}";
+
+		if ( ! empty( $args['branch'] ) ) {
+			$url = add_query_arg( array(
+				'branch' => $args['branch'],
+				'filter' => 'successful'
+			), $url );
+		}
 
 		$response = wp_remote_get( esc_url_raw( $url ) );
 
