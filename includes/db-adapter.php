@@ -36,7 +36,7 @@ class GP_LocalCI_DB_Adapter {
             FROM `gp_originals`
              JOIN `gp_translations` ON ( `gp_originals`.`id` = `gp_translations`.`original_id` )
              JOIN `gp_translation_sets` ON ( `gp_translations`.`translation_set_id` = `gp_translation_sets`.`id` )
-            WHERE $where AND `gp_originals`.`status` = '+active' AND `gp_translations`.`status` = 'current'"
+            WHERE $where AND `gp_translations`.`status` = 'current'"
 		 );
 	}
 
