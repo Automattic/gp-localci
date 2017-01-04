@@ -9,10 +9,11 @@ gp-localci is a Github-oriented localization continuous integration add-on to Gl
 - CI account (CircleCI, unless you want to write a new adapter. PRs welcome!)
 
 ## Installation
-1. Put this plugin in the folder: `/glotpress/plugins/`
-2. Ensure `/gp-localci/config.php` is locked down as possible (file permissions, move it out of webroot, etc).
-3. Set the `LOCALCI_DESIRED_LOCALES` and `LOCALCI_GITHUB_API_MANAGEMENT_TOKEN` defines.
-4. Set up entries in `config.php`'s `$repo_metadata`. All lowercase keys. An example entry:
+1. Put this plugin in the folder: `/glotpress/plugins/`.
+2. Create a `config.php` file based on `config-sample.php`.
+3. Ensure `/gp-localci/config.php` is locked down as possible (file permissions, move it out of webroot, etc).
+4. Set the `LOCALCI_DESIRED_LOCALES` and `LOCALCI_GITHUB_API_MANAGEMENT_TOKEN` defines.
+5. Set up entries in `config.php`'s `$repo_metadata`. All lowercase keys. An example entry:
 
 ```
 'automattic/wp-calypso' => array(
