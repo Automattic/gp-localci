@@ -16,6 +16,6 @@ class GP_LocalCI_Config {
 
 	public static function get_value( $owner, $repo, $key ) {
 		$fqrn = strtolower( "$owner/$repo" );
-		return isset( self::$repo_metadata[$fqrn][$key] ) ? self::$repo_metadata[$fqrn][$key] : false;
+		return isset( self::$repo_metadata[ $fqrn ][ $key ] ) ? self::$repo_metadata[ $fqrn ][ $key ] : false;
 	}
 }

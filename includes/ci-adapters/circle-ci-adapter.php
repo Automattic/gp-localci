@@ -33,7 +33,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			'branch'    => $branch,
 			'reponame'  => $reponame,
 			'username'  => $username,
-			'vcs_type'  => $vcs_type
+			'vcs_type'  => $vcs_type,
 		) );
 	}
 
@@ -43,7 +43,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 				'build_num'  => $this->payload->build_num,
 				'reponame'   => $this->payload->reponame,
 				'username'   => $this->payload->username,
-				'vcs_type'   => $this->payload->vcs_type
+				'vcs_type'   => $this->payload->vcs_type,
 			);
 		} else {
 			$default_args = array();
@@ -58,7 +58,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		if ( ! empty( $args['branch'] ) ) {
 			$url = add_query_arg( array(
 				'branch' => $args['branch'],
-				'filter' => 'successful'
+				'filter' => 'successful',
 			), $url );
 		}
 

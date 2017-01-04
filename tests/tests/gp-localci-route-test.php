@@ -1,5 +1,8 @@
 <?php
 class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
+
+	public $gp_localci;
+
 	function setUp() {
 		$this->gp_localci = new GP_Route_LocalCI(
 			$ci = new Mock_Build_CI(),
@@ -70,19 +73,19 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 		$_SERVER['HTTP_CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
 		$_SERVER['HTTP_X_GITHUB_EVENT'] = 'pull_request';
 		$_SERVER['HTTP_X_HUB_SIGNATURE'] = 'invalid non-matching sig';
-		$_POST['payload'] = json_encode( (object) array(
+		$_POST['payload'] = wp_json_encode( (object) array(
 			'repository' => (object) array(
 				'owner' => (object) array(
-					'login' => 'unit-test'
+					'login' => 'unit-test',
 				),
-				'name' => 'abc123'
+				'name' => 'abc123',
 			),
 			'pull_request' => (object) array(
 				'head' => (object) array(
 					'ref' => 'fix/whatever',
-					'sha' => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e'
-				)
-			)
+					'sha' => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e',
+				),
+			),
 		) );
 
 		$this->gp_localci->gh->__construct();
@@ -98,20 +101,20 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 		$_SERVER['HTTP_CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
 		$_SERVER['HTTP_X_GITHUB_EVENT'] = 'pull_request';
 		$_SERVER['HTTP_X_HUB_SIGNATURE'] = 'sha1=73a203f11c6f7bdbfc5ca67e2bf70a777489efd1';
-		$_POST['payload'] = json_encode( (object) array(
+		$_POST['payload'] = wp_json_encode( (object) array(
 			'action' => 'closed',
 			'repository' => (object) array(
 				'owner' => (object) array(
-					'login' => 'unit-test'
+					'login' => 'unit-test',
 				),
-				'name' => 'abc123'
+				'name' => 'abc123',
 			),
 			'pull_request' => (object) array(
 				'head' => (object) array(
 					'ref' => 'fix/whatever',
-					'sha' => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e'
-				)
-			)
+					'sha' => 'fc9df6ee7b05acd4ff34c1f112b2c9dd3c53f70e',
+				),
+			),
 		) );
 
 		$this->gp_localci->gh->__construct();

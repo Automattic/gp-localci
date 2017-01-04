@@ -37,7 +37,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$gh_data = $this->ci->get_gh_data();
 
 		if ( ! $this->gh->is_data_valid( $gh_data ) ) {
-			$this->die_with_error( "Invalid Github data.", 400 );
+			$this->die_with_error( 'Invalid Github data.', 400 );
 		}
 
 		if ( 'master' == $gh_data->branch ) {
@@ -46,7 +46,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( $this->is_locked( $gh_data->sha ) ) {
-			$this->die_with_error( "Rate limit exceeded.", 429 );
+			$this->die_with_error( 'Rate limit exceeded.', 429 );
 		}
 
 		$this->set_lock( $gh_data->sha );
@@ -55,11 +55,11 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
 
 		if ( false === $po_file || false === $project_id ) {
-			$this->die_with_error( "Invalid GlotPress data.", 400 );
+			$this->die_with_error( 'Invalid GlotPress data.', 400 );
 		}
 
 		if ( empty( $po_file ) ) {
-			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, "0 new strings. ¡Ándale!" );
+			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, '0 new strings. ¡Ándale!' );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
@@ -78,7 +78,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( ! $this->gh->is_valid_request( $this->gh->owner, $this->gh->repo ) ) {
-			$this->die_with_error( "Invalid request.", 401 );
+			$this->die_with_error( 'Invalid request.', 401 );
 		}
 
 		if ( ! $this->gh->is_string_freeze_label_added_event() ) {
@@ -108,9 +108,6 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// @todo: report back to the GH PR confirmation (?)
 	}
 
-
-
-
 	/**
 	 * The nitty gritty details
 	 */
@@ -122,12 +119,12 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	private function is_locked( $sha ) {
 		$shas = get_transient( 'localci_sha_lock' );
 
-		if ( ! isset( $shas[$sha] ) ) {
+		if ( ! isset( $shas[ $sha ] ) ) {
 			return false;
 		}
 
-		if ( $this->has_lock_expired( $shas[$sha] ) ) {
-			unset( $shas[$sha] );
+		if ( $this->has_lock_expired( $shas[ $sha ] ) ) {
+			unset( $shas[ $sha ] );
 			set_transient( 'localci_sha_lock', $shas, HOUR_IN_SECONDS );
 			return false;
 		}
@@ -142,7 +139,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$shas = array();
 		}
 
-		$shas[$sha] = time();
+		$shas[ $sha ] = time();
 		set_transient( 'localci_sha_lock', $shas, HOUR_IN_SECONDS );
 	}
 

@@ -20,7 +20,7 @@ function gp_startswith( $haystack, $needle ) {
 }
 
 function gp_endswith( $haystack, $needle ) {
-	return $needle === substr( $haystack, -strlen( $needle ));
+	return substr( $haystack, -strlen( $needle ) ) === $needle;
 }
 
 function gp_in( $needle, $haystack ) {
@@ -29,4 +29,8 @@ function gp_in( $needle, $haystack ) {
 
 function wp_safe_remote_post( $dummy1 ) {
 	return true;
+}
+
+function wp_json_encode( $what ) {
+	return json_encode( $what );
 }

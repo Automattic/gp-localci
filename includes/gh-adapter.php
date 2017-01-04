@@ -10,7 +10,7 @@ class GP_LocalCI_Github_Adapter {
 			'X-Hub-Signature' => $_SERVER['HTTP_X_HUB_SIGNATURE'],
 		);
 
-		if ( $_SERVER['HTTP_CONTENT_TYPE'] === 'application/x-www-form-urlencoded' ) {
+		if ( 'application/x-www-form-urlencoded' === $_SERVER['HTTP_CONTENT_TYPE'] ) {
 			$this->raw_payload = $_POST['payload'];
 		} else {
 			$this->raw_payload = file_get_contents( 'php://input' );
@@ -19,7 +19,7 @@ class GP_LocalCI_Github_Adapter {
 		$this->payload = json_decode( $this->raw_payload );
 
 		$this->owner   = isset( $this->payload->repository->owner->login ) ? $this->payload->repository->owner->login : false;
-		$this->repo    = isset( $this->payload->repository->name) ? $this->payload->repository->name : false;
+		$this->repo    = isset( $this->payload->repository->name ) ? $this->payload->repository->name : false;
 		$this->branch  = isset( $this->payload->pull_request->head->ref ) ? $this->payload->pull_request->head->ref : false;
 		$this->sha     = isset( $this->payload->pull_request->head->sha ) ? $this->payload->pull_request->head->sha : false;
 	}
@@ -71,14 +71,14 @@ class GP_LocalCI_Github_Adapter {
 			'headers' => array(
 				'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
 			),
-			'body' => json_encode( array(
+			'body' => wp_json_encode( array(
 				'state' => 'success',
 				'description' => $localci_summary,
-				'context' => 'ci/i18n'
+				'context' => 'ci/i18n',
 			) ),
 			'blocking' => false,
 			'timeout' => 30,
-			'user-agent' => 'LocalCI/GP v1.0'
+			'user-agent' => 'LocalCI/GP v1.0',
 		) );
 	}
 }

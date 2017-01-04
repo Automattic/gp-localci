@@ -8,7 +8,7 @@ function localci_load_po( $po_obj_or_file ) {
 
 	if ( is_string( $po_obj_or_file ) && file_exists( $po_obj_or_file ) ) {
 		$po->import_from_file( $po_obj_or_file );
-	} else if ( is_string( $po_obj_or_file ) ) {
+	} elseif ( is_string( $po_obj_or_file ) ) {
 		$po->import_from_file( 'data://text/plain,' . urlencode( $po_obj_or_file ) );
 	} else {
 		return false;
@@ -22,7 +22,7 @@ function localci_generate_coverage_stats( $po_obj_or_file, $coverage ) {
 	$stats = array_fill_keys( LOCALCI_DESIRED_LOCALES, 0 );
 
 	foreach ( $coverage as $row ) {
-		$stats[$row->locale]++;
+		$stats[ $row->locale ]++;
 	}
 
 	$num_translated = array_sum( $stats );
@@ -44,22 +44,22 @@ function localci_generate_coverage_summary( $num_strings, $percent_translated ) 
 
 	switch ( true ) {
 		case $percent_translated == 100:
-			$summary .= "Translations: 100% coverage.";
+			$summary .= 'Translations: 100% coverage.';
 			break;
 		case $percent_translated >= 75:
-			$summary .= "Translations: {$percent_translated}% coverage.";
+			$summary .= 'Translations: {$percent_translated}% coverage.';
 			break;
 		case $percent_translated > 25:
-			$summary .= "Translations: {$percent_translated}% coverage.";
+			$summary .= 'Translations: {$percent_translated}% coverage.';
 			break;
 		case $percent_translated <= 25:
-			$prefix = $num_strings > $warning_threshold ? "Warning -- " : "Translations: ";
+			$prefix = $num_strings > $warning_threshold ? 'Warning -- ' : 'Translations: ';
 			$summary .= $prefix . "{$percent_translated}% translated.";
 	}
 
 	return $summary;
 }
 
-function localci_generate_string_suggestions( ) {
+function localci_generate_string_suggestions() {
 	// @TODO: likely not trivial
 }
