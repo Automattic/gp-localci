@@ -151,7 +151,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		$shas[ $sha ] = time();
-		set_transient( 'localci_sha_lock', $shas, HOUR_IN_SECONDS );
+		set_transient( 'localci_sha_lock', $shas, 5 * MINUTE_IN_SECONDS );
 	}
 
 	private function has_lock_expired( $sha_lock_time ) {
