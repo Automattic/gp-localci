@@ -75,7 +75,7 @@ class GP_LocalCI_Github_Adapter {
 				'state' => 'success',
 				'description' => $localci_summary,
 				'context' => 'ci/i18n',
-				'target_url' => "https://translate.wordpress.com/localci/status/$owner/$repo/$branch",
+				'target_url' => gp_url_public_root() . "localci/status/$owner/$repo/$branch",
 			) ),
 			'blocking' => false,
 			'timeout' => 30,
