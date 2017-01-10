@@ -71,6 +71,10 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		$artifacts = json_decode( wp_remote_retrieve_body( $response ) );
 		$new_strings_artifact = false;
 
+		if ( ! $artifacts ) {
+			 return false;
+		}
+
 		foreach ( $artifacts as $artifact ) {
 			if ( '$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot' == $artifact->pretty_path ) {
 				$new_strings_artifact = $artifact;
