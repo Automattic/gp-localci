@@ -36,28 +36,35 @@ function localci_generate_coverage_stats( $po_obj_or_file, $coverage ) {
 }
 
 function localci_generate_coverage_percent_translated( $num_originals, $num_translated ) {
+	if ( 0 === $num_originals ) {
+		return 0;
+	}
+
 	return number_format( ( $num_translated / ( count( LOCALCI_DESIRED_LOCALES ) * $num_originals ) ) * 100 );
 }
 
-function localci_generate_coverage_summary( $num_strings, $new_strings, $percent_translated ) {
+function localci_generate_coverage_summary( $num_strings, $new_strings = 0, $percent_translated ) {
 	$warning_threshold = 3;
 
-	if ( $new_strings ) {
-		$new_strings = ' ' . sprintf( _n( '(%d new) ', '(%d new) ', $new_strings, 'gp_localci' ), $new_strings );
+	if ( 0 !== $new_strings ) {
+		$new_strings = ' ' . sprintf( _n( '(%d new)', '(%d new)', $new_strings, 'gp_localci' ), $new_strings );
+	} else {
+		$new_strings = '';
 	}
 
-	$summary = sprintf( _n( 'Total: %d string%s.', 'Total: %d strings%s.', $num_strings, 'gp_localci' ), $num_strings, $new_strings );
-
+	$summary = sprintf( _n( 'Total: %1$d string%2$s. ', 'Total: %1$d strings%2$s. ', $num_strings, 'gp_localci' ), $num_strings, $new_strings );
 
 	switch ( true ) {
-		case $percent_translated == 100:
+		case ( 0 === $num_strings ) :
+			break;
+		case '100' === $percent_translated :
 			$summary .= 'Translations: 100% coverage.';
 			break;
 		case $percent_translated >= 75:
-			$summary .= 'Translations: {$percent_translated}% coverage.';
+			$summary .= "Translations: {$percent_translated}% coverage.";
 			break;
 		case $percent_translated > 25:
-			$summary .= 'Translations: {$percent_translated}% coverage.';
+			$summary .= "Translations: {$percent_translated}% coverage.";
 			break;
 		case $percent_translated <= 25:
 			$prefix = $num_strings > $warning_threshold ? ' Only ' : ' Translations: ';

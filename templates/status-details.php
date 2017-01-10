@@ -1,5 +1,5 @@
 <?php
-gp_title( sprintf( __('Localci Status &lt; %s &lt; GlotPress'), esc_html( $repo . '/' . $branch ) ) );
+gp_title( sprintf( __( 'Localci Status &lt; %s &lt; GlotPress' ), esc_html( $repo . '/' . $branch ) ) );
 gp_tmpl_header();
 ?>
 	<h2>LocalCI Status: <?php echo esc_html( esc_html( $owner . '/' . $repo . '/' . $branch ) ); ?><a href="<?php echo esc_url( "https://github.com/$owner/$repo/tree/$branch/" ) ?>">&nearr;</a></h2>
@@ -8,6 +8,7 @@ gp_tmpl_header();
 		<div>
 			<?php echo esc_html( $stats['summary'] ); ?>
 		</div>
+		<?php if ( ! empty( $coverage['new_strings'] ) && ! empty( $coverage['existing_strings'] ) ) : ?>
 		<h3>Details</h3>
 		<div>
 			<?php if ( ! empty( $coverage['new_strings'] ) ) : ?>
@@ -26,6 +27,7 @@ gp_tmpl_header();
 			?>
 			</ul>
 			<?php endif;?>
+			<?php if ( ! empty( $coverage['existing_strings'] ) ) : ?>
 			<h5>Existing translations</h5>
 			<ul>
 				<?php
@@ -34,16 +36,17 @@ gp_tmpl_header();
 					echo '<li>';
 					echo '<code>' . esc_html( $original['singular'] ) . '</code><br/>';
 					$reference = array_pop( $original['references'] );
-				    list( $file, $line ) = array_pad( explode( ':', $reference ), 2, 0 );
+					list( $file, $line ) = array_pad( explode( ':', $reference ), 2, 0 );
 					echo ' <a href="' . esc_url( "https://github.com/$owner/$repo/blob/$branch/" . addslashes( $file ) . '#L' . intval( $line ) ) . '">View in source</a>';
 					$all_translations_link = gp_url_project( $project, '-all-translated/' . $original['id'] );
-					echo ' | <a href="' . esc_url( $all_translationk ) . '">' . count( $original['locales'] ) . ' translations</a>';
+					echo ' | <a href="' . esc_url( $all_translations_link ) . '">' . count( $original['locales'] ) . ' translations</a>';
 					echo '</li>';
 				}
 				?>
 			</ul>
-
+			<?php endif; ?>
 		</div>
+		<?php endif; ?>
 	</div>
 
 <?php gp_tmpl_footer();
