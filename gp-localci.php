@@ -58,13 +58,14 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( 'Invalid GlotPress data.', 400 );
 		}
 
-		if ( empty( $po_file ) ) {
+		$po = localci_load_po( $po_file );
+
+		if ( empty( $po->entries ) ) {
 			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, '0 new strings. ¡Ándale!' );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
 
-		$po        = localci_load_po( $po_file );
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
