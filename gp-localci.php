@@ -37,7 +37,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$gh_data = $this->ci->get_gh_data();
 
 		if ( ! $this->gh->is_data_valid( $gh_data ) ) {
-			$this->die_with_error( 'Invalid Github data.', 400 );
+			$this->die_with_error( "Invalid Github data.", 406 );
 		}
 
 		if ( 'master' == $gh_data->branch ) {
@@ -46,7 +46,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( $this->is_locked( $gh_data->sha ) ) {
-			$this->die_with_error( 'Rate limit exceeded.', 429 );
+			$this->die_with_error( "Rate limit exceeded.", 429 );
 		}
 
 		$this->set_lock( $gh_data->sha );
