@@ -59,7 +59,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		if ( empty( $po_file ) ) {
-			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, '0 new strings. ¡Ándale!' );
+			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, '0 new strings. ¡Ándale!' );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
@@ -68,7 +68,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
-		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $stats['summary'] );
+		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, $stats['summary'] );
 		$this->tmpl( 'status-ok' );
 	}
 
@@ -106,6 +106,16 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		// @todo: figure out how to import into GP
 
 		// @todo: report back to the GH PR confirmation (?)
+	}
+	public function status( $owner, $repo, $branch ) {
+		$po_file    = $this->ci->get_most_recent_pot( $owner, $repo, $branch );
+		$project_id = GP_LocalCI_Config::get_value( $owner, $repo, 'gp_project_id' );
+		$project    = GP::$project->get( $project_id );
+		$po         = localci_load_po( $po_file );
+		$coverage   = $this->db->get_string_coverage( $po, $project_id );
+		$stats      = localci_generate_coverage_stats( $po, $coverage );
+
+		$this->tmpl( 'status-details', get_defined_vars() );
 	}
 
 	/**
@@ -154,8 +164,12 @@ class GP_LocalCI_API_Loader {
 	}
 
 	function init_new_routes() {
+		$owner = $repo = '([0-9a-zA-Z_\-\.]+?)';
+		$branch = '(.+?)';
+
 		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
 		GP::$router->add( '/localci/-relay-string-freeze-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_from_gh' ), 'post' );
+		GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
 	}
 }
 

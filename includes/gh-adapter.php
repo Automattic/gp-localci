@@ -66,7 +66,7 @@ class GP_LocalCI_Github_Adapter {
 		return true;
 	}
 
-	public function post_to_status_api( $owner, $repo, $sha, $localci_summary ) {
+	public function post_to_status_api( $owner, $repo, $sha, $branch, $localci_summary ) {
 		return wp_safe_remote_post( LOCALCI_GITHUB_API_URL . "/repos/$owner/$repo/statuses/$sha", array(
 			'headers' => array(
 				'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
@@ -75,6 +75,7 @@ class GP_LocalCI_Github_Adapter {
 				'state' => 'success',
 				'description' => $localci_summary,
 				'context' => 'ci/i18n',
+				'target_url' => "https://translate.wordpress.com/localci/status/$owner/$repo/$branch",
 			) ),
 			'blocking' => false,
 			'timeout' => 30,

@@ -21,15 +21,16 @@ function localci_generate_coverage_stats( $po_obj_or_file, $coverage ) {
 	$po = localci_load_po( $po_obj_or_file );
 	$stats = array_fill_keys( LOCALCI_DESIRED_LOCALES, 0 );
 
-	foreach ( $coverage as $row ) {
+	foreach ( $coverage['translations'] as $row ) {
 		$stats[ $row->locale ]++;
 	}
 
 	$num_translated = array_sum( $stats );
 
 	$stats['num_strings'] = count( $po->entries );
+	$stats['new_strings'] = count( $coverage[ 'new_strings' ] );
 	$stats['percent_translated'] = localci_generate_coverage_percent_translated( $stats['num_strings'], $num_translated );
-	$stats['summary'] = localci_generate_coverage_summary( $stats['num_strings'], $stats['percent_translated'] );
+	$stats['summary'] = localci_generate_coverage_summary( $stats['num_strings'], $stats['new_strings'], $stats['percent_translated'] );
 
 	return $stats;
 }
@@ -38,9 +39,15 @@ function localci_generate_coverage_percent_translated( $num_originals, $num_tran
 	return number_format( ( $num_translated / ( count( LOCALCI_DESIRED_LOCALES ) * $num_originals ) ) * 100 );
 }
 
-function localci_generate_coverage_summary( $num_strings, $percent_translated ) {
+function localci_generate_coverage_summary( $num_strings, $new_strings, $percent_translated ) {
 	$warning_threshold = 3;
-	$summary = sprintf( _n( '%s new string. ', '%s new strings. ', $num_strings, 'gp_localci' ), $num_strings );
+
+	if ( $new_strings ) {
+		$new_strings = ' ' . sprintf( _n( '(%d new) ', '(%d new) ', $new_strings, 'gp_localci' ), $new_strings );
+	}
+
+	$summary = sprintf( _n( 'Total: %d string%s.', 'Total: %d strings%s.', $num_strings, 'gp_localci' ), $num_strings, $new_strings );
+
 
 	switch ( true ) {
 		case $percent_translated == 100:
@@ -53,7 +60,7 @@ function localci_generate_coverage_summary( $num_strings, $percent_translated ) 
 			$summary .= 'Translations: {$percent_translated}% coverage.';
 			break;
 		case $percent_translated <= 25:
-			$prefix = $num_strings > $warning_threshold ? 'Warning -- ' : 'Translations: ';
+			$prefix = $num_strings > $warning_threshold ? ' Only ' : ' Translations: ';
 			$summary .= $prefix . "{$percent_translated}% translated.";
 	}
 
