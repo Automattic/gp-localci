@@ -62,13 +62,8 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			), $url );
 		}
 
-		$response = wp_remote_get( esc_url_raw( $url ) );
-
-		if ( empty( $response ) || is_wp_error( $response ) ) {
-			return false;
-		}
-
-		$artifacts = json_decode( wp_remote_retrieve_body( $response ) );
+		$response = $this->cached_remote_get( esc_url_raw( $url ) );
+		$artifacts = json_decode( $response );
 		$new_strings_artifact = false;
 
 		if ( ! $artifacts ) {
@@ -76,7 +71,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		}
 
 		foreach ( $artifacts as $artifact ) {
-			if ( '$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot' == $artifact->pretty_path ) {
+			if ( '$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot' === $artifact->pretty_path ) {
 				$new_strings_artifact = $artifact;
 				break;
 			}
@@ -86,8 +81,28 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
-		$response = wp_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ) );
+		$artifact_file = $this->cached_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ) );
 
-		return wp_remote_retrieve_body( $response );
+		return $artifact_file;
+	}
+
+	private function cached_remote_get( $url ) {
+		$cache_group = 'circleci_artifacts_get';
+		$cache_key = md5( $url );
+
+		if ( false !== $cache = wp_cache_get( $cache_key, $cache_group ) ) {
+			return $cache;
+		}
+
+		$response = wp_remote_get( $url );
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return false;
+		}
+
+		$content = wp_remote_retrieve_body( $response );
+		wp_cache_add( $cache_key, $content, $cache_group, 5 * MINUTE_IN_SECONDS );
+
+		return $content;
 	}
 }
