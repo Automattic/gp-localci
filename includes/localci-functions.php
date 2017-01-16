@@ -74,14 +74,14 @@ function localci_generate_coverage_summary( $num_strings, $new_strings = 0, $per
 	return $summary;
 }
 
-function localci_cached_remote_get( $url, $cache_time = 0, $args = null ) {
+function localci_cached_remote_get( $url, $cache_time = 0, $args = array() ) {
 	$cache_group = 'circleci_artifacts_get';
 	$cache_key   = md5( $url );
 
-	if ( false && false !== $cache = wp_cache_get( $cache_key, $cache_group ) ) {
+	if ( false !== $cache = wp_cache_get( $cache_key, $cache_group ) ) {
 		return $cache;
 	}
-l( "fetcing $url");
+
 	$response = wp_remote_get( $url, $args );
 
 	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
