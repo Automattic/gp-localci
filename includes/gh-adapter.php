@@ -67,9 +67,8 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	public function get_pull_request( $owner, $repo, $branch ) {
-		// TODO: auth
-		$url = LOCALCI_GITHUB_API_URL . "/repos/$owner/$repo/pulls?sort=updated&direction=desc" ;
-		$response = localci_cached_remote_get( add_query_arg( 'head', "$owner:$branch", $url ) );
+		$api_path = "/repos/$owner/$repo/pulls?sort=updated&direction=desc&head=$owner:$branch" ;
+		$response = $this->api_get( $api_path );
 		if ( $response ) {
 			$pulls = json_decode( $response );
 			return $pulls[0];
@@ -89,7 +88,7 @@ class GP_LocalCI_Github_Adapter {
 		$status_page_url = gp_url_public_root() . "localci/status/$owner/$repo/$branch";
 
 		// Delete previous comments
-		$current_pr_comments = localci_cached_remote_get( LOCALCI_GITHUB_API_URL . $url );
+		$current_pr_comments = $this->api_get( $api_path, array(), MINUTE_IN_SECONDS );
 		if ( $current_pr_comments ) {
 			$current_pr_comments = json_decode( $current_pr_comments );
 			foreach ( $current_pr_comments as $comment ) {
@@ -149,11 +148,11 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			if ( $best_suggestion ) {
-				$message .= 'Alternate string suggestion: ' . $this->format_string_for_comment( $best_suggestion ) . '(' . count( $best_suggestion['locales'] ) . " current translations). \n";
+				$message .= "Alternate string suggestion: \n* " . $this->format_string_for_comment( $best_suggestion ) . '&mdash; translations: **' . count( $best_suggestion['locales'] ) . "**. \n\n";
 			}
 
 			if ( '' !== $message ) {
-				$message .= "Visit this PR translation [status page]($status_page_url) for details.";
+				$message .= "[PR translation status page]($status_page_url)";
 				$body = array(
 					'body' => $message,
 					'commit_id' => $sha,
@@ -169,24 +168,23 @@ class GP_LocalCI_Github_Adapter {
 
 	private function format_string_for_comment( $suggestion ) {
 		// TODO: add filter for other formatting options.
-		$formatted = "```translate( '{$suggestion['singular']}'";
+		$formatted = "`translate( '{$suggestion['singular']}'";
 		if ( ! is_null( $suggestion['plural'] )  ) {
 			$formatted .= ", '{$suggestion['plural']}'";
 		}
 		if ( ! is_null( $suggestion['context'] )  ) {
 			$formatted .= ", { context: '{$suggestion['context']}'}";
 		}
-		$formatted .= ' )```';
+		$formatted .= ' )`';
 
 		return $formatted;
 	}
 
 	private function get_pull_request_diff( $owner, $repo, $pr_number ) {
-		// TODO: auth
-		$url = LOCALCI_GITHUB_API_URL . "/repos/$owner/$repo/pulls/$pr_number" ;
+		$api_path = "/repos/$owner/$repo/pulls/$pr_number" ;
 
 		$args = array( 'headers' => array( 'Accept' => 'application/vnd.github.3.diff' ) );
-		$diff = localci_cached_remote_get( $url, 5 * MINUTE_IN_SECONDS, $args );
+		$diff = $this->api_get( $api_path, $args, 5 * MINUTE_IN_SECONDS );
 
 		return $diff;
 	}
@@ -202,11 +200,14 @@ class GP_LocalCI_Github_Adapter {
 		return $this->api_post( "/repos/$owner/$repo/statuses/$sha", $data );
 	}
 
+	private function api_get( $path, $args = array(), $cache_time = 0 ) {
+		$args = wp_parse_args( $args, array( 'headers' => $this->api_auth_header() ) );
+		return localci_cached_remote_get( LOCALCI_GITHUB_API_URL . $path, $cache_time, $args );
+	}
+
 	private function api_post( $path, $body ) {
 		$post_data = array(
-			'headers' => array(
-				'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
-			),
+			'headers' => $this->api_auth_header(),
 			'body' => wp_json_encode( $body ),
 			'blocking' => false,
 			'timeout' => 30,
@@ -221,9 +222,7 @@ class GP_LocalCI_Github_Adapter {
 		wp_remote_request(
 			LOCALCI_GITHUB_API_URL . $path,
 			array(
-				'headers' => array(
-					'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
-				),
+				'headers' => $this->api_auth_header(),
 				'timeout' => 30,
 				'blocking' => true,
 				'method' => 'DELETE',
@@ -231,7 +230,9 @@ class GP_LocalCI_Github_Adapter {
 		);
 	}
 
-	private function api_get( $path, $params, $headers, $cache_time ) {
-
+	private function api_auth_header() {
+		return array(
+			'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
+		);
 	}
 }
