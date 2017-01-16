@@ -87,6 +87,9 @@ class GP_LocalCI_DB_Adapter {
 	private function filter_cross_locale_translated_status( $strings ) {
 		$rows = array();
 		foreach ( $strings as $string ) {
+			if ( ! isset( $string['locales'] ) ) {
+				continue;
+			}
 			foreach ( $string['locales'] as $_locale ) {
 				if ( in_array( $_locale, LOCALCI_DESIRED_LOCALES ) ) {
 					$rows[ $_locale ] = $rows[ $_locale ] + 1;
