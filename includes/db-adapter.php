@@ -15,20 +15,7 @@ class GP_LocalCI_DB_Adapter {
 				if ( empty( $original_translations ) && '-obsolete' === $original->status ) {
 					$new_originals[] = $original->fields();
 				} else {
-					$original = $original->fields();
-					$original['locales']  = array();
-					foreach ( $original_translations as $translation ) {
-						$translations[] = (object) array(
-							'original_id'    => $original['id'],
-							'context'        => $original['context'],
-							'singular'       => $original['singular'],
-							'plural'         => $original['plural'],
-							'translation_id' => $translation->id,
-							'locale'         => $translation->locale,
-						);
-						$original['locales'][] = $translation->locale;
-					}
-					$existing_originals[] = $original;
+					$existing_originals[] = $this->existing_original_object( $original, $original_translations );
 				}
 			} else {
 				$data = array(
@@ -39,6 +26,12 @@ class GP_LocalCI_DB_Adapter {
 					'comment'    => $entry->extracted_comments,
 					'references' => implode( ' ', $entry->references ),
 				);
+
+				$suggested_replacements = $this->get_suggested_replacements( $entry );
+				if ( $suggested_replacements ) {
+					$data['suggestions'] = $suggested_replacements;
+				}
+
 				$new_originals[] = $data;
 			}
 		}
@@ -50,6 +43,45 @@ class GP_LocalCI_DB_Adapter {
 		);
 
 		return $coverage;
+	}
+
+	private function get_suggested_replacements( $entry ) {
+		if ( ! function_exists( 'gp_es_find_similar' ) ) {
+			return false;
+		}
+
+		$hits = gp_es_find_similar( $entry );
+		if ( ! $hits ) {
+			return false;
+		}
+
+		$suggestions = array();
+		foreach ( $hits as $hit ) {
+			$original = GP::$original->get( $hit['_id'] );
+			$original_translations = $this->get_translations_for_original( $original->id );
+			$original = $this->existing_original_object( $original, $original_translations );
+			$original['score'] = $hit['_score'];
+			$suggestions[] = $original;
+		}
+
+		return $suggestions;
+	}
+
+	private function existing_original_object( $original, $original_translations ) {
+		$original = $original->fields();
+		$original['locales']  = array();
+		foreach ( $original_translations as $translation ) {
+			$translations[] = (object) array(
+				'original_id'    => $original['id'],
+				'context'        => $original['context'],
+				'singular'       => $original['singular'],
+				'plural'         => $original['plural'],
+				'translation_id' => $translation->id,
+				'locale'         => $translation->locale,
+			);
+			$original['locales'][] = $translation->locale;
+		}
+		return $original;
 	}
 
 	private function filter_cross_locale_translated_status( $rows ) {

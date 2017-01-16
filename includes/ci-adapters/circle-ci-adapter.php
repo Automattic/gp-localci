@@ -19,11 +19,15 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
+		$pull_request = $this->payload->pull_requests[0]->url;
+		$pull_request = substr( $pull_request, strrpos( $pull_request, '/' ) + 1 );
+
 		return (object) array(
-			'owner'  => $this->payload->username,
-			'repo'   => $this->payload->reponame,
-			'sha'    => $this->payload->vcs_revision,
-			'branch' => $this->payload->branch,
+			'owner'     => mb_strtolower( $this->payload->username ),
+			'repo'      => $this->payload->reponame,
+			'sha'       => $this->payload->vcs_revision,
+			'branch'    => $this->payload->branch,
+			'pr_number' => $pull_request,
 		);
 	}
 
@@ -62,7 +66,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			), $url );
 		}
 
-		$response = $this->cached_remote_get( esc_url_raw( $url ) );
+		$response = localci_cached_remote_get( esc_url_raw( $url ), 5 * MINUTE_IN_SECONDS );
 		$artifacts = json_decode( $response );
 		$new_strings_artifact = false;
 
@@ -81,28 +85,8 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
-		$artifact_file = $this->cached_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ) );
+		$artifact_file = localci_cached_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ), 5 * MINUTE_IN_SECONDS );
 
 		return $artifact_file;
-	}
-
-	private function cached_remote_get( $url ) {
-		$cache_group = 'circleci_artifacts_get';
-		$cache_key = md5( $url );
-
-		if ( false !== $cache = wp_cache_get( $cache_key, $cache_group ) ) {
-			return $cache;
-		}
-
-		$response = wp_remote_get( $url );
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return false;
-		}
-
-		$content = wp_remote_retrieve_body( $response );
-		wp_cache_add( $cache_key, $content, $cache_group, 5 * MINUTE_IN_SECONDS );
-
-		return $content;
 	}
 }

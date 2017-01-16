@@ -108,15 +108,32 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		// @todo: report back to the GH PR confirmation (?)
 	}
+
 	public function status( $owner, $repo, $branch ) {
 		$po_file    = $this->ci->get_most_recent_pot( $owner, $repo, $branch );
+		$pull_request = $this->gh->get_pull_request( $owner, $repo, $branch );
+
+		$status_gh_link_href = $pull_request ?
+			"https://github.com/$owner/$repo/pull/$pull_request->number" :
+			"https://github.com/$owner/$repo/tree/$branch/";
+
+		$status_gh_link_text = $pull_request ?
+			"$pull_request->title ($owner/$repo)" :
+			"$repo/branch/$branch";
+
 		$project_id = GP_LocalCI_Config::get_value( $owner, $repo, 'gp_project_id' );
 		$project    = GP::$project->get( $project_id );
 		$po         = localci_load_po( $po_file );
 		$coverage   = $this->db->get_string_coverage( $po, $project_id );
 		$stats      = localci_generate_coverage_stats( $po, $coverage );
 
+		add_action( 'gp_head', array( $this, 'status_page_css' ) );
 		$this->tmpl( 'status-details', get_defined_vars() );
+	}
+
+	public function status_page_css() {
+		wp_register_style( 'gp-localci', plugins_url( 'css/gp-localci.css', __FILE__ ) );
+		gp_enqueue_style( 'gp-localci' );
 	}
 
 	/**
