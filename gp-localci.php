@@ -67,6 +67,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
+		$comments  = $this->gh->post_suggestions_comments( $gh_data, $coverage );
+
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
 		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, $stats['summary'] );

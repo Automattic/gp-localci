@@ -316,7 +316,7 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	/**
-	 * Generates the Authorization header for the Github api
+	 * Generates the Authorization header for the Github api.
 	 *
 	 * @return array Headers array.
 	 */
