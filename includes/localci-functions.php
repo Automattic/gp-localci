@@ -19,13 +19,8 @@ function localci_load_po( $po_obj_or_file ) {
 
 function localci_generate_coverage_stats( $po_obj_or_file, $coverage ) {
 	$po = localci_load_po( $po_obj_or_file );
-	$stats = array_fill_keys( LOCALCI_DESIRED_LOCALES, 0 );
 
-	foreach ( $coverage['translations'] as $row ) {
-		$stats[ $row->locale ]++;
-	}
-
-	$num_translated = array_sum( $stats );
+	$num_translated = array_sum( $coverage['translations'] );
 
 	$stats['num_strings'] = count( $po->entries );
 	$stats['new_strings'] = count( $coverage['new_strings'] );

@@ -39,8 +39,10 @@ class GP_LocalCI_DB_Adapter {
 		$coverage = array(
 			'new_strings' => $new_originals,
 			'existing_strings' => $existing_originals,
-			'translations' => $this->filter_cross_locale_translated_status( $translations ),
+			'translations' => $this->filter_cross_locale_translated_status( array_merge( $new_originals, $existing_originals ) ),
 		);
+
+		l( $coverage );
 
 		return $coverage;
 	}
@@ -84,10 +86,13 @@ class GP_LocalCI_DB_Adapter {
 		return $original;
 	}
 
-	private function filter_cross_locale_translated_status( $rows ) {
-		foreach ( $rows as $key => $row ) {
-			if ( ! in_array( $row->locale, LOCALCI_DESIRED_LOCALES ) ) {
-				unset( $rows[ $key ] );
+	private function filter_cross_locale_translated_status( $strings ) {
+		$rows = array();
+		foreach ( $strings as $string ) {
+			foreach ( $string['locales'] as $_locale ) {
+				if ( in_array( $_locale, LOCALCI_DESIRED_LOCALES ) ) {
+					$rows[ $_locale ] = $rows[ $_locale ] + 1;
+				}
 			}
 		}
 		return $rows;
