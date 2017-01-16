@@ -79,14 +79,13 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	public function post_suggestions_comments( $gh_data, $coverage ) {
-
 		$owner = $gh_data->owner;
 		$repo = $gh_data->repo;
 		$pr_number = $gh_data->pr_number;
 		$sha = $gh_data->sha;
 		$branch = $gh_data->branch;
 
-		$url = "/repos/$owner/$repo/pulls/$pr_number/comments";
+		$api_path = "/repos/$owner/$repo/pulls/$pr_number/comments";
 		$status_page_url = gp_url_public_root() . "localci/status/$owner/$repo/$branch";
 
 		// Delete previous comments
@@ -109,13 +108,14 @@ class GP_LocalCI_Github_Adapter {
 					)
 				), 2, 0 );
 
+				// Get the diff hunk for the current file
 				$re = '/' . preg_quote( $file, '/' ) . '\n@@.*\n([\s\S]*?)(diff|\Z)/m';
 				preg_match_all( $re, $diff, $matches );
 
 				if ( ! empty( $matches[1] ) ) {
 					$message_body = $this->pr_suggestion_comment( $matches[1][0], $string, $string['suggestions'], $file, $sha, $status_page_url );
 					if ( $message_body ) {
-						$this->api_post( $url, $message_body );
+						$this->api_post( $api_path, $message_body );
 					}
 				}
 			}
@@ -149,11 +149,11 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			if ( $best_suggestion ) {
-				$message .= 'Alternate string suggestion: ' . $this->format_string_for_comment( $best_suggestion );
+				$message .= 'Alternate string suggestion: ' . $this->format_string_for_comment( $best_suggestion ) . '(' . count( $best_suggestion['locales'] ) . " current translations). \n";
 			}
 
 			if ( '' !== $message ) {
-				$message .= "\n Visit the [PR Translation status page]($status_page_url) for details.";
+				$message .= "Visit this PR translation [status page]($status_page_url) for details.";
 				$body = array(
 					'body' => $message,
 					'commit_id' => $sha,
@@ -168,6 +168,7 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	private function format_string_for_comment( $suggestion ) {
+		// TODO: add filter for other formatting options.
 		$formatted = "```translate( '{$suggestion['singular']}'";
 		if ( ! is_null( $suggestion['plural'] )  ) {
 			$formatted .= ", '{$suggestion['plural']}'";
