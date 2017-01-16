@@ -128,7 +128,7 @@ class GP_LocalCI_Github_Adapter {
 				), 2, 0 );
 
 				// Get the diff hunk for the current file
-				$re = '/' . preg_quote( $file, '/' ) . '\n@@.*\n([\s\S]*?)(diff|\Z)/m';
+				$re = '/' . preg_quote( $file, '/' ) . '\n@@.*\n([\s\S]*?)(^diff|\Z)/m';
 				preg_match_all( $re, $diff, $matches );
 
 				if ( ! empty( $matches[1] ) ) {
