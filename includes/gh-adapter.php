@@ -108,7 +108,7 @@ class GP_LocalCI_Github_Adapter {
 		$status_page_url = gp_url_public_root() . "localci/status/$owner/$repo/$branch";
 
 		// Delete previous comments
-		$current_pr_comments = $this->api_get( $api_path, array(), MINUTE_IN_SECONDS );
+		$current_pr_comments = $this->api_get( $api_path, array(), 30 );
 		if ( $current_pr_comments ) {
 			$current_pr_comments = json_decode( $current_pr_comments );
 			foreach ( $current_pr_comments as $comment ) {
