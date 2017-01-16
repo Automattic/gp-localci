@@ -42,8 +42,6 @@ class GP_LocalCI_DB_Adapter {
 			'translations' => $this->filter_cross_locale_translated_status( array_merge( $new_originals, $existing_originals ) ),
 		);
 
-		l( $coverage );
-
 		return $coverage;
 	}
 
