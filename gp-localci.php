@@ -40,7 +40,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( 'Invalid Github data.', 406 );
 		}
 
-		if ( 'master' == $gh_data->branch ) {
+		if ( 'master' === $gh_data->branch ) {
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
@@ -90,8 +90,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			exit;
 		}
 
-		// @todo: sleep?
-
+		// @todo: retry if tests pending? sleep?
 		$most_recent_pot = $this->ci->get_most_recent_pot(
 			$this->gh->owner,
 			$this->gh->repo,
