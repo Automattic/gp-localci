@@ -35,8 +35,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		$gh_data = $this->ci->get_gh_data();
-
 		if ( ! $this->gh->is_data_valid( $gh_data ) ) {
+			$this->log( 'error', 'invalid-gh-data', $gh_data );
 			$this->die_with_error( 'Invalid Github data.', 406 );
 		}
 
@@ -67,11 +67,12 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
-		$comments  = $this->gh->post_suggestions_comments( $gh_data, $coverage );
-
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
-
 		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, $stats['summary'] );
+		$comments = $this->gh->post_suggestions_comments( $gh_data, $coverage );
+
+		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats ));
+
 		$this->tmpl( 'status-ok' );
 	}
 
