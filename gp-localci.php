@@ -99,7 +99,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		);
 
 		if ( false === $most_recent_pot ) {
-			// @todo: alert someone; this is an error
+			$this->log( 'error', 'relay-string-freeze-invalid-recent-pot', $this->gh->get_gh_data() );
+			$this->die_with_error( 'Unable to retrieve latest strings file.', 400 );
 		}
 
 		if ( empty( $most_recent_pot ) ) {
