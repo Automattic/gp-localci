@@ -113,7 +113,7 @@ class GP_LocalCI_Github_Adapter {
 		if ( $current_pr_comments ) {
 			$current_pr_comments = json_decode( $current_pr_comments );
 			foreach ( $current_pr_comments as $comment ) {
-				if ( 'a8ci18n' === $comment->user->login ) {
+				if ( LOCALCI_GITHUB_USER_NAME === $comment->user->login ) {
 					$previous_comments[ $comment->path ][ $comment->position ] = $comment;
 				}
 			}

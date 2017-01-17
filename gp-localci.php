@@ -148,12 +148,15 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	private function is_locked( $sha ) {
+		if ( GP_LocalCI::get_instance()->debug ) {
+			return false;
+		}
+
 		$shas = get_transient( 'localci_sha_lock' );
 
 		if ( ! isset( $shas[ $sha ] ) ) {
 			return false;
 		}
-
 		if ( $this->has_lock_expired( $shas[ $sha ] ) ) {
 			unset( $shas[ $sha ] );
 			set_transient( 'localci_sha_lock', $shas, 5 * MINUTE_IN_SECONDS );
@@ -186,6 +189,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 class GP_LocalCI {
 	private static $instance = null;
 	public $id = 'gp_localci';
+	public $debug;
 
 	public static function init() {
 		self::get_instance();
