@@ -305,6 +305,12 @@ class GP_LocalCI_Github_Adapter {
 	 * @return array|bool|WP_Error
 	 */
 	private function api_post( $path, $body ) {
+		$this->log( 'remote-request', 'github', array(
+			'url' => LOCALCI_GITHUB_API_URL . $path,
+			'type' => 'POST',
+			'body' => $body,
+		) );
+
 		// TODO: handle errors.
 		$post_data = array(
 			'headers' => $this->api_auth_header(),
@@ -324,6 +330,11 @@ class GP_LocalCI_Github_Adapter {
 	 * @param string $path Path to send to.
 	 */
 	private function api_delete( $path ) {
+		$this->log( 'remote-request', 'github', array(
+			'url' => LOCALCI_GITHUB_API_URL . $path,
+			'type' => 'DELETE',
+		) );
+
 		// TODO: return, handle errors.
 		wp_remote_request(
 			LOCALCI_GITHUB_API_URL . $path,
@@ -343,6 +354,12 @@ class GP_LocalCI_Github_Adapter {
 	 * @param mixed   $body  Body of request.
 	 */
 	private function api_patch( $path, $body ) {
+		$this->log( 'remote-request', 'github', array(
+			'url' => LOCALCI_GITHUB_API_URL . $path,
+			'type' => 'PATCH',
+			'body' => $body,
+		) );
+
 		// TODO: return, handle errors.
 		return wp_remote_request(
 			LOCALCI_GITHUB_API_URL . $path,
@@ -374,5 +391,9 @@ class GP_LocalCI_Github_Adapter {
 			'sha'       => $this->sha,
 			'branch'    => $this->branch,
 		);
+	}
+
+	private function log( $type, $context, $message ) {
+		GP_LocalCI::get_instance()->log( $type, $context, $message );
 	}
 }

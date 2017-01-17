@@ -77,6 +77,12 @@ function localci_cached_remote_get( $url, $cache_time = 0, $args = array() ) {
 		return $cache;
 	}
 
+	GP_LocalCI::get_instance()->log( 'remote-request', 'cached', array(
+		'url' => $url,
+		'type' => 'GET',
+		'args' => $args,
+	) );
+
 	$response = wp_remote_get( $url, $args );
 
 	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
