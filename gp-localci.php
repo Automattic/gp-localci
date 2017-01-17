@@ -176,11 +176,35 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	private function has_lock_expired( $sha_lock_time ) {
 		return time() > $sha_lock_time + HOUR_IN_SECONDS;
 	}
+
+	private function log( $type, $context, $message ) {
+		GP_LocalCI::get_instance()->log( $type, $context, $message );
+	}
 }
 
-class GP_LocalCI_API_Loader {
-	function init() {
+class GP_LocalCI {
+	private static $instance = null;
+	public $id = 'gp_localci';
+
+	public static function init() {
+		self::get_instance();
+	}
+
+	public static function get_instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	function __construct() {
 		$this->init_new_routes();
+		$this->debug = apply_filters( 'gp_localci_debug', false );
+	}
+
+	function log( $type, $context, $message ) {
+		do_action( 'gp_localci_log', $type, $context, $message );
 	}
 
 	function init_new_routes() {
@@ -193,5 +217,4 @@ class GP_LocalCI_API_Loader {
 	}
 }
 
-$gp_localci_api = new GP_LocalCI_API_Loader();
-add_action( 'gp_init', array( $gp_localci_api, 'init' ) );
+add_action( 'gp_init', array( 'GP_LocalCI', 'init' ) );
