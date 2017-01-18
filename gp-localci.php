@@ -114,6 +114,12 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 	public function status( $owner, $repo, $branch ) {
 		$po_file    = $this->ci->get_most_recent_pot( $owner, $repo, $branch );
+
+		if ( ! $po_file ) {
+			$this->log( 'error', 'ci-strings-file-not-found', func_get_args() );
+			$this->die_with_error( 'Unable to retrieve strings file from CI.', 400 );
+		}
+
 		$pull_request = $this->gh->get_pull_request( $owner, $repo, $branch );
 
 		$status_gh_link_href = $pull_request ?
