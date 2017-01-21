@@ -71,7 +71,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, $stats['summary'] );
 		$comments = $this->gh->post_suggestions_comments( $gh_data, $coverage );
 
-		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats ));
+		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats, 'coverage' => $coverage ) );
 
 		$this->tmpl( 'status-ok' );
 	}
