@@ -12,6 +12,7 @@ class GP_LocalCI_Github_Adapter {
 	private $headers;
 
 	public function parse_incoming_request() {
+
 		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) || ! gp_startswith( $_SERVER['HTTP_USER_AGENT'], 'GitHub-Hookshot' ) ) {
 			return false;
 		}
