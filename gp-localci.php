@@ -35,7 +35,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		$gh_data = $this->ci->get_gh_data();
-		if ( ! $this->gh->is_data_valid( $gh_data ) ) {
+		if ( ! $this->gh->set_gh_data( $gh_data ) ) {
 			$this->log( 'error', 'invalid-gh-data', $gh_data );
 			$this->die_with_error( 'Invalid Github data.', 406 );
 		}
@@ -68,8 +68,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
-		$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, $stats['summary'] );
-		$comments = $this->gh->post_suggestions_comments( $gh_data, $coverage );
+		$this->gh->post_to_status_api( $stats['summary'] );
+		$comments = $this->gh->post_suggestions_comments( $coverage );
 
 		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats, 'coverage' => $coverage ) );
 
@@ -81,7 +81,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
-		if ( ! $this->gh->is_valid_request( $this->gh->owner, $this->gh->repo ) ) {
+		if ( ! $this->gh->parse_incoming_request() ) {
 			$this->die_with_error( 'Invalid request.', 401 );
 		}
 
@@ -91,11 +91,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 
 		// @todo: retry if tests pending? sleep?
-		$most_recent_pot = $this->ci->get_most_recent_pot(
-			$this->gh->owner,
-			$this->gh->repo,
-			$this->gh->branch
-		);
+		$most_recent_pot = $this->ci->get_most_recent_pot( $this->gh->get_gh_data() );
 
 		if ( false === $most_recent_pot ) {
 			$this->log( 'error', 'relay-string-freeze-invalid-recent-pot', $this->gh->get_gh_data() );
@@ -113,14 +109,22 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function status( $owner, $repo, $branch ) {
-		$po_file    = $this->ci->get_most_recent_pot( $owner, $repo, $branch );
+		$this->gh->set_gh_data(
+			(object) array(
+				'owner' => $owner,
+				'repo' => $repo,
+				'branch' => $branch,
+			)
+		);
+
+		$po_file = $this->ci->get_most_recent_pot( $this->gh->get_gh_data() );
 
 		if ( ! $po_file ) {
 			$this->log( 'error', 'ci-strings-file-not-found', func_get_args() );
 			$this->die_with_error( 'Unable to retrieve strings file from CI.', 400 );
 		}
 
-		$pull_request = $this->gh->get_pull_request( $owner, $repo, $branch );
+		$pull_request = $this->gh->get_pull_request();
 
 		$status_gh_link_href = $pull_request ?
 			"https://github.com/$owner/$repo/pull/$pull_request->number" :

@@ -31,13 +31,13 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		);
 	}
 
-	public function get_most_recent_pot( $username, $reponame, $branch, $vcs_type = 'github' ) {
+	public function get_most_recent_pot( $gh_data ) {
 		return $this->get_new_strings_pot( array(
 			'build_num' => 'latest',
-			'branch'    => $branch,
-			'reponame'  => $reponame,
-			'username'  => $username,
-			'vcs_type'  => $vcs_type,
+			'branch'    => $gh_data->branch,
+			'reponame'  => $gh_data->repo,
+			'username'  => $gh_data->owner,
+			'vcs_type'  => $gh_data->vcs_type,
 		) );
 	}
 
