@@ -297,16 +297,17 @@ class GP_LocalCI_Github_Adapter {
 	/**
 	 * Posts to github status api on a commit
 	 *
-	 * @param string $localci_summary  Localci summary data.
+	 * @param string $description  Localci summary data.
+	 * @param string $state        Localci status state.
 	 *
 	 * @return array|bool|WP_Error
 	 */
-	public function post_to_status_api( $localci_summary ) {
+	public function post_to_status_api( $description, $state  ) {
 		$owner_repo = $this->owner . '/' . $this->repo;
 
 		$data = array(
-			'state'       => 'success',
-			'description' => $localci_summary,
+			'state'       => $state,
+			'description' => $description,
 			'context'     => 'ci/i18n',
 			'target_url'  => gp_url_public_root() . "localci/status/$owner_repo/{$this->branch}",
 		);
