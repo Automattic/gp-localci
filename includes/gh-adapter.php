@@ -288,8 +288,8 @@ class GP_LocalCI_Github_Adapter {
 		return $diff;
 	}
 
-	public function pr_in_string_freeze( $owner, $repo, $pr_number ) {
-		$api_path = "/repos/$owner/$repo/issues/$pr_number/labels" ;
+	public function pr_in_string_freeze() {
+		$api_path = "/repos/{$this->owner}/{$this->repo}/issues/{$this->pr_number}/labels" ;
 		$labels = json_decode( $this->api_get( $api_path, array(),  MINUTE_IN_SECONDS ) );
 		return in_array( LOCALCI_GITHUB_STRING_FREEZE_LABEL, wp_list_pluck( $labels, 'name' ), true );
 	}
