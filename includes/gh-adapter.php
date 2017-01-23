@@ -12,6 +12,7 @@ class GP_LocalCI_Github_Adapter {
 	private $headers;
 
 	public function parse_incoming_request() {
+
 		if ( empty( $_SERVER['HTTP_USER_AGENT'] ) || ! gp_startswith( $_SERVER['HTTP_USER_AGENT'], 'GitHub-Hookshot' ) ) {
 			return false;
 		}
@@ -287,19 +288,26 @@ class GP_LocalCI_Github_Adapter {
 		return $diff;
 	}
 
+	public function pr_in_string_freeze() {
+		$api_path = "/repos/{$this->owner}/{$this->repo}/issues/{$this->pr_number}/labels" ;
+		$labels = json_decode( $this->api_get( $api_path, array(),  MINUTE_IN_SECONDS ) );
+		return in_array( LOCALCI_GITHUB_STRING_FREEZE_LABEL, wp_list_pluck( $labels, 'name' ), true );
+	}
+
 	/**
 	 * Posts to github status api on a commit
 	 *
-	 * @param string $localci_summary  Localci summary data.
+	 * @param string $description  Localci summary data.
+	 * @param string $state        Localci status state.
 	 *
 	 * @return array|bool|WP_Error
 	 */
-	public function post_to_status_api( $localci_summary ) {
+	public function post_to_status_api( $description, $state  ) {
 		$owner_repo = $this->owner . '/' . $this->repo;
 
 		$data = array(
-			'state'       => 'success',
-			'description' => $localci_summary,
+			'state'       => $state,
+			'description' => $description,
 			'context'     => 'ci/i18n',
 			'target_url'  => gp_url_public_root() . "localci/status/$owner_repo/{$this->branch}",
 		);

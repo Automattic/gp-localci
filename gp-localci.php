@@ -61,18 +61,21 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		if ( false === $po_file || false === $project_id ) {
 			$this->die_with_error( 'Invalid GlotPress data.', 400 );
 		}
+		$this->gh->post_to_status_api( 'Processing...', 'pending' );
 
 		$po = localci_load_po( $po_file );
-
 		if ( empty( $po->entries ) ) {
-			$this->gh->post_to_status_api( $gh_data->owner, $gh_data->repo, $gh_data->sha, $gh_data->branch, '0 new strings. ¡Ándale!' );
+			$this->gh->post_to_status_api( '0 new strings. ¡Ándale!', 'success' );
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
 
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
-		$this->gh->post_to_status_api( $stats['summary'] );
+
+		$pr_state = $this->pr_status_state( $stats, $this->gh->pr_in_string_freeze() );
+
+		$this->gh->post_to_status_api( $stats['summary'], $pr_state );
 		$comments = $this->gh->post_suggestions_comments( $coverage );
 
 		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats, 'coverage' => $coverage ) );
@@ -193,6 +196,16 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 	private function has_lock_expired( $sha_lock_time ) {
 		return time() > $sha_lock_time + HOUR_IN_SECONDS;
+	}
+
+	private function pr_status_state( $stats, $string_freeze = false ) {
+		if ( ! $string_freeze ) {
+			return 'success';
+		}
+
+		$state = ( 100 === absint( $stats['precent_translated'] ) ) ? 'success' : 'failure';
+
+		return $state;
 	}
 }
 
