@@ -1,6 +1,10 @@
 <?php
 class GP_LocalCI_Github_Adapter {
 
+	use GP_Localci_Log, GP_LocalCI_Cached_Remote_Get {
+		GP_Localci_Log::log insteadof GP_LocalCI_Cached_Remote_Get;
+	}
+
 	private $data;
 
 	private $payload;
@@ -312,7 +316,7 @@ class GP_LocalCI_Github_Adapter {
 	 */
 	private function api_get( $path, $args = array(), $cache_time = 0 ) {
 		$args = wp_parse_args( $args, array( 'headers' => $this->api_auth_header() ) );
-		return localci_cached_remote_get( LOCALCI_GITHUB_API_URL . $path, $cache_time, $args );
+		return $this->cached_get( LOCALCI_GITHUB_API_URL . $path, $cache_time, $args );
 	}
 
 	/**
@@ -401,9 +405,5 @@ class GP_LocalCI_Github_Adapter {
 		return array(
 			'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
 		);
-	}
-
-	private function log( $type, $context, $message ) {
-		GP_LocalCI::get_instance()->log( $type, $context, $message );
 	}
 }

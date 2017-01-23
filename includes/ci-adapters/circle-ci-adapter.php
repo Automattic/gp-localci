@@ -3,6 +3,9 @@
 define( 'LOCALCI_CIRCLECI_API_URL', 'https://circleci.com/api/v1.1' );
 
 class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
+
+	use GP_LocalCI_Cached_Remote_Get;
+
 	private $payload;
 
 	public function __construct() {
@@ -66,7 +69,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			), $url );
 		}
 
-		$response = localci_cached_remote_get( esc_url_raw( $url ), 5 * MINUTE_IN_SECONDS );
+		$response = $this->cached_get( esc_url_raw( $url ), 5 * MINUTE_IN_SECONDS );
 		$artifacts = json_decode( $response );
 		$new_strings_artifact = false;
 
@@ -85,7 +88,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
-		$artifact_file = localci_cached_remote_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ), 5 * MINUTE_IN_SECONDS );
+		$artifact_file = $this->cached_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ), 5 * MINUTE_IN_SECONDS );
 
 		return $artifact_file;
 	}
