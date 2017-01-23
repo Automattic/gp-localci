@@ -14,6 +14,7 @@ if ( ! defined( 'GP_LOCALCI_UNIT_TEST' ) || ! GP_LOCALCI_UNIT_TEST ) {
 	require __DIR__ . '/config.php';
 }
 
+require __DIR__ . '/includes/localci-traits.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
 require __DIR__ . '/includes/gh-adapter.php';
@@ -21,6 +22,9 @@ require __DIR__ . '/includes/localci-functions.php';
 
 
 class GP_Route_LocalCI extends GP_Route_Main {
+
+	use GP_Localci_Log;
+
 	public function __construct( $ci = null, $db = null, $gh = null ) {
 		$this->ci = isset( $ci ) ? $ci : $this->get_ci_adapter( LOCALCI_BUILD_CI );
 		$this->db = isset( $db ) ? $db : new GP_LocalCI_DB_Adapter();
@@ -190,10 +194,6 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	private function has_lock_expired( $sha_lock_time ) {
 		return time() > $sha_lock_time + HOUR_IN_SECONDS;
 	}
-
-	private function log( $type, $context, $message ) {
-		GP_LocalCI::get_instance()->log( $type, $context, $message );
-	}
 }
 
 class GP_LocalCI {
@@ -216,10 +216,6 @@ class GP_LocalCI {
 	function __construct() {
 		$this->init_new_routes();
 		$this->debug = apply_filters( 'gp_localci_debug', false );
-	}
-
-	function log( $type, $context, $message ) {
-		do_action( 'gp_localci_log', $type, $context, $message );
 	}
 
 	function init_new_routes() {
