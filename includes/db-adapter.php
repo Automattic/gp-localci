@@ -61,6 +61,13 @@ class GP_LocalCI_DB_Adapter {
 			$original_translations = $this->get_translations_for_original( $original->id );
 			$original = $this->existing_original_object( $original, $original_translations );
 			$original['score'] = $hit['_score'];
+
+			// discard obsolete strings with no translations
+			// TODO: maybe implement in ES query
+			if ( '-obsolete' === $original['status'] && empty( $original['locales'] ) ) {
+				continue;
+			}
+
 			$suggestions[] = $original;
 		}
 
