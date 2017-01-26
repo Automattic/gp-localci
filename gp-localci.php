@@ -73,7 +73,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
-		$pr_state = $this->pr_status_state( $stats, $this->gh->pr_in_string_freeze() );
+		$pr_state = $this->pr_status_state( $stats, $this->gh->is_pr_in_string_freeze() );
 
 		$this->gh->post_to_status_api( $stats['summary'], $pr_state );
 		$comments = $this->gh->post_suggestions_comments( $coverage );

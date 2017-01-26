@@ -289,10 +289,16 @@ class GP_LocalCI_Github_Adapter {
 		return $diff;
 	}
 
-	public function pr_in_string_freeze() {
+	public function is_pr_in_string_freeze() {
 		$api_path = "/repos/{$this->owner}/{$this->repo}/issues/{$this->pr_number}/labels" ;
 		$labels = json_decode( $this->api_get( $api_path, array(),  MINUTE_IN_SECONDS ) );
 		return in_array( LOCALCI_GITHUB_STRING_FREEZE_LABEL, wp_list_pluck( $labels, 'name' ), true );
+	}
+
+	public function get_string_freeze_prs() {
+		$api_path = "/repos/{$this->owner}/{$this->repo}/issues?labels=" . urlencode( LOCALCI_GITHUB_STRING_FREEZE_LABEL );
+		$prs = json_decode( $this->api_get( $api_path, array(),  30 * MINUTE_IN_SECONDS ) );
+		return wp_list_pluck( wp_list_filter( $prs, array( 'pull_request' => null ), 'NOT' ), 'number' );
 	}
 
 	/**
