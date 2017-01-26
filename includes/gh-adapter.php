@@ -235,7 +235,8 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			if ( $best_suggestion ) {
-				$message .= "Alternate string suggestion: \n* " . $this->format_string_for_comment( $best_suggestion ) . '&mdash; translations: **' . count( $best_suggestion['locales'] ) . "**. \n\n";
+				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 2 ) . '*' : '';
+				$message .= "Alternate string suggestion: \n* " . $this->format_string_for_comment( $best_suggestion ) . '&mdash; translations: **' . count( $best_suggestion['locales'] ) . "**.$score\n\n";
 			}
 
 			if ( '' !== $message ) {
