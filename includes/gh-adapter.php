@@ -374,7 +374,7 @@ class GP_LocalCI_Github_Adapter {
 		) );
 
 		// TODO: return, handle errors.
-		wp_remote_request(
+		wp_safe_remote_request(
 			LOCALCI_GITHUB_API_URL . $path,
 			array(
 				'headers' => $this->api_auth_header(),
@@ -399,7 +399,7 @@ class GP_LocalCI_Github_Adapter {
 		) );
 
 		// TODO: return, handle errors.
-		return wp_remote_request(
+		return wp_safe_remote_request(
 			LOCALCI_GITHUB_API_URL . $path,
 			array(
 				'headers' => $this->api_auth_header(),

@@ -24,7 +24,7 @@ trait GP_LocalCI_Cached_Remote_Get {
 			'args' => $args,
 		) );
 
-		$response = wp_remote_get( $url, $args );
+		$response = wp_safe_remote_get( $url, $args );
 
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
