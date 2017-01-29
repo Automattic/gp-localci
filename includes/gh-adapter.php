@@ -63,7 +63,10 @@ class GP_LocalCI_Github_Adapter {
 		if ( isset( $this->data->$key ) ) {
 			return $this->data->$key;
 		}
-		// TODO: log error
+		$this->log( 'property-not-set', 'gh-adapter', array(
+			'key' => $key,
+			'data' => $this->data,
+		) );
 	}
 
 	public function generate_webhook_signature( $owner, $repo ) {
