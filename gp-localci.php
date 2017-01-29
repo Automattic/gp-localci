@@ -40,8 +40,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		$gh_data = $this->ci->get_gh_data();
 		if ( ! $this->gh->set_gh_data( $gh_data ) ) {
-			$this->log( 'error', 'invalid-gh-data', $gh_data );
-			$this->die_with_error( 'Invalid Github data.', 406 );
+			$this->log( 'error', 'invalid-gh-data-from-ci', $gh_data );
+			$this->die_with_error( 'Invalid Github data from CI.', 406 );
 		}
 
 		if ( 'master' === $gh_data->branch ) {
@@ -84,6 +84,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function relay_string_freeze_from_gh() {
+		// TODO: handle label being removed.
+
 		if ( ! $this->api ) {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
@@ -109,10 +111,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
+		// TODO: post PR status to GH
 
-		// @todo: figure out how to import into GP
-
-		// @todo: report back to the GH PR confirmation (?)
 	}
 
 	public function status( $owner, $repo, $branch ) {

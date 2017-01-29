@@ -63,6 +63,7 @@ class GP_LocalCI_Github_Adapter {
 		if ( isset( $this->data->$key ) ) {
 			return $this->data->$key;
 		}
+		// TODO: log error
 	}
 
 	public function generate_webhook_signature( $owner, $repo ) {
