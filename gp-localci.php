@@ -177,6 +177,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		if ( ! empty( $po->entries ) ) {
 			$this->headers_for_download( sanitize_file_name( $repo . '-string-freeze.pot' ) );
 			echo $po->export();
+		} else {
+			$this->die_with_error( 'No strings found', 404 );
 		}
 	}
 
