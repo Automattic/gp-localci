@@ -156,6 +156,30 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		gp_enqueue_style( 'gp-localci' );
 	}
 
+	public function string_freeze_pot( $owner, $repo ) {
+		$gh_data = (object) array(
+			'owner' => $owner,
+			'repo' => $repo,
+		);
+
+		$this->gh->set_gh_data( $gh_data );
+
+		$po = new PO();
+		$prs = $this->gh->get_string_freeze_prs();
+		foreach ( $prs as $pr_number ) {
+			$gh_data->branch = $this->gh->get_pull_request_branch( $pr_number );
+			$po_file_for_branch = $this->ci->get_most_recent_pot( $gh_data );
+			if ( $po_file_for_branch ) {
+				$po->import_from_file( 'data://text/plain,' . urlencode( $po_file_for_branch ) );
+			}
+		}
+
+		if ( ! empty( $po->entries ) ) {
+			$this->headers_for_download( sanitize_file_name( $repo . '-string-freeze.pot' ) );
+			echo $po->export();
+		}
+	}
+
 	/**
 	 * The nitty gritty details
 	 */
@@ -238,6 +262,7 @@ class GP_LocalCI {
 		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
 		GP::$router->add( '/localci/-relay-string-freeze-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_from_gh' ), 'post' );
 		GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
+		GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
 	}
 }
 
