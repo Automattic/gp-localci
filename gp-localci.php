@@ -203,7 +203,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			return 'success';
 		}
 
-		$state = ( 100 === absint( $stats['precent_translated'] ) ) ? 'success' : 'failure';
+		$state = ( 100 === absint( $stats['percent_translated'] ) ) ? 'success' : 'failure';
 
 		return $state;
 	}
