@@ -97,12 +97,12 @@ class GP_LocalCI_Github_Adapter {
 		return true;
 	}
 
-	public function is_string_freeze_label_added_event() {
+	public function is_string_freeze_label_changed_event() {
 		if ( 'pull_request' !== $this->headers['X-GitHub-Event'] ) {
 			return false;
 		}
 
-		if ( 'labeled' !== $this->payload->action ) {
+		if ( 'labeled' !== $this->payload->action && 'unlabeled' !== $this->payload->action ) {
 			return false;
 		}
 

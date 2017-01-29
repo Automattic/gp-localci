@@ -83,9 +83,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$this->tmpl( 'status-ok' );
 	}
 
-	public function relay_string_freeze_from_gh() {
-		// TODO: handle label being removed.
-
+	public function relay_string_freeze_change_from_gh() {
 		if ( ! $this->api ) {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
@@ -94,25 +92,28 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( 'Invalid request.', 401 );
 		}
 
-		if ( ! $this->gh->is_string_freeze_label_added_event() ) {
+		$gh_data = $this->gh->get_gh_data();
+
+		if ( ! $this->gh->is_string_freeze_label_changed_event() ) {
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
 
-		// @todo: retry if tests pending? sleep?
-		$most_recent_pot = $this->ci->get_most_recent_pot( $this->gh->get_gh_data() );
-
-		if ( false === $most_recent_pot ) {
-			$this->log( 'error', 'relay-string-freeze-invalid-recent-pot', $this->gh->get_gh_data() );
-			$this->die_with_error( 'Unable to retrieve latest strings file.', 400 );
+		$po_file = $this->ci->get_most_recent_pot( $gh_data );
+		if ( ! $po_file ) {
+			$this->log( 'error', 'ci-strings-file-not-found', func_get_args() );
+			$this->die_with_error( 'Unable to retrieve strings file from CI.', 400 );
 		}
 
-		if ( empty( $most_recent_pot ) ) {
-			$this->tmpl( 'status-ok' );
-			exit;
-		}
-		// TODO: post PR status to GH
+		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
+		$po         = localci_load_po( $po_file );
+		$coverage   = $this->db->get_string_coverage( $po, $project_id );
+		$stats      = localci_generate_coverage_stats( $po, $coverage );
 
+		$pr_state = $this->pr_status_state( $stats, $this->gh->is_pr_in_string_freeze() );
+		$this->gh->post_to_status_api( $stats['summary'], $pr_state );
+
+		$this->tmpl( 'status-ok' );
 	}
 
 	public function status( $owner, $repo, $branch ) {
@@ -262,7 +263,7 @@ class GP_LocalCI {
 		$branch = '(.+?)';
 
 		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
-		GP::$router->add( '/localci/-relay-string-freeze-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_from_gh' ), 'post' );
+		GP::$router->add( '/localci/-relay-string-freeze-change-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_change_from_gh' ), 'post' );
 		GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
 		GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
 	}
