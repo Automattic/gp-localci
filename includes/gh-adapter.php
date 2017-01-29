@@ -304,6 +304,12 @@ class GP_LocalCI_Github_Adapter {
 		return wp_list_pluck( wp_list_filter( $prs, array( 'pull_request' => null ), 'NOT' ), 'number' );
 	}
 
+	public function get_pull_request_branch( $pr_number ) {
+		$api_path = "/repos/{$this->owner}/{$this->repo}/pulls/{$pr_number}";
+		$pr = json_decode( $this->api_get( $api_path ) );
+		return $pr->head->ref;
+	}
+
 	/**
 	 * Posts to github status api on a commit
 	 *
