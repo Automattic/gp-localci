@@ -1,7 +1,7 @@
-<phpunit testdox="true" stop-on-failure="false" colors="true" bootstrap="bootstrap.php">
+<phpunit testdox="true" stop-on-failure="false" colors="true" bootstrap="tests/bootstrap.php">
 	<testsuites>
 		<testsuite name="core">
-			<directory suffix="-test.php">tests</directory>
+			<directory suffix="-test.php">tests/tests</directory>
 		</testsuite>
 	</testsuites>
 	<logging>

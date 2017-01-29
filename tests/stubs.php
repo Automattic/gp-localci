@@ -34,3 +34,17 @@ function wp_safe_remote_post( $dummy1 ) {
 function wp_json_encode( $what ) {
 	return json_encode( $what );
 }
+
+
+function do_action() {
+	return;
+}
+
+function apply_filters( $what ) {
+	return $what;
+}
+
+function gp_url_public_root() {
+	return 'https://translate.wordpress.com';
+}
+define( 'MINUTE_IN_SECONDS', 60 );

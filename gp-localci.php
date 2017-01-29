@@ -20,7 +20,6 @@ require __DIR__ . '/includes/db-adapter.php';
 require __DIR__ . '/includes/gh-adapter.php';
 require __DIR__ . '/includes/localci-functions.php';
 
-
 class GP_Route_LocalCI extends GP_Route_Main {
 
 	use GP_Localci_Log;
@@ -62,6 +61,11 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->die_with_error( 'Invalid GlotPress data.', 400 );
 		}
 		$this->gh->post_to_status_api( 'Processing...', 'pending' );
+
+		if ( '' === $po_file ) {
+			$this->tmpl( 'status-ok' );
+			exit;
+		}
 
 		$po = localci_load_po( $po_file );
 		if ( empty( $po->entries ) ) {
@@ -262,10 +266,12 @@ class GP_LocalCI {
 		$owner = $repo = '([0-9a-zA-Z_\-\.]+?)';
 		$branch = '(.+?)';
 
-		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
-		GP::$router->add( '/localci/-relay-string-freeze-change-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_change_from_gh' ), 'post' );
-		GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
-		GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
+		if ( class_exists( 'GP' ) ) {
+			GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
+			GP::$router->add( '/localci/-relay-string-freeze-change-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_change_from_gh' ), 'post' );
+			GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
+			GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
+		}
 	}
 }
 

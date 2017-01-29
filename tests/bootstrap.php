@@ -14,4 +14,3 @@ if ( file_exists( __DIR__ . '/../gp-localci.php' ) ) {
 } else {
 	die( 'Unknown environment' );
 }
-
