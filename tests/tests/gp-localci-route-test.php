@@ -13,7 +13,7 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * @expectedException      Exception
-	 * @expectedExceptionCode  400
+	 * @expectedExceptionCode  406
 	 */
 	function test_relay_new_strings_to_gh_empty_payload() {
 		$this->gp_localci->relay_new_strings_to_gh();
@@ -88,8 +88,8 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 			),
 		) );
 
-		$this->gp_localci->gh->__construct();
-		$this->gp_localci->relay_string_freeze_from_gh();
+		$this->gp_localci->gh->parse_incoming_request();
+		$this->gp_localci->relay_string_freeze_change_from_gh();
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Test_GP_LocalCI_Route extends PHPUnit_Framework_TestCase {
 			),
 		) );
 
-		$this->gp_localci->gh->__construct();
-		$this->gp_localci->relay_string_freeze_from_gh();
+		$this->gp_localci->gh->parse_incoming_request();
+		$this->gp_localci->relay_string_freeze_change_from_gh();
 	}
 }
