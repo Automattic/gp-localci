@@ -75,17 +75,19 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	private function is_data_valid( $data ) {
-		if ( empty( $data->owner ) || empty( $data->repo )
-			|| empty( $data->branch ) ) {
+		if ( empty( $data->owner ) || empty( $data->repo ) ) {
 			return false;
 		}
 
-		if ( ! is_string( $data->owner ) || ! is_string( $data->repo )
-			 || ! is_string( $data->branch ) ) {
+		if ( ! is_string( $data->owner ) || ! is_string( $data->repo ) ) {
 			return false;
 		}
 
 		if ( ! empty( $data->sha ) && ( ! is_string( $data->sha ) ||  40 !== strlen( $data->sha ) ) ) {
+			return false;
+		}
+
+		if ( isset( $data->brach ) && ( ! is_string( $data->branch ) ) ) {
 			return false;
 		}
 
