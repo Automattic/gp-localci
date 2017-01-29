@@ -40,8 +40,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		$gh_data = $this->ci->get_gh_data();
 		if ( ! $this->gh->set_gh_data( $gh_data ) ) {
-			$this->log( 'error', 'invalid-gh-data', $gh_data );
-			$this->die_with_error( 'Invalid Github data.', 406 );
+			$this->log( 'error', 'invalid-gh-data-from-ci', $gh_data );
+			$this->die_with_error( 'Invalid Github data from CI.', 406 );
 		}
 
 		if ( 'master' === $gh_data->branch ) {
@@ -84,6 +84,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function relay_string_freeze_from_gh() {
+		// TODO: handle label being removed.
+
 		if ( ! $this->api ) {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
@@ -109,10 +111,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$this->tmpl( 'status-ok' );
 			exit;
 		}
+		// TODO: post PR status to GH
 
-		// @todo: figure out how to import into GP
-
-		// @todo: report back to the GH PR confirmation (?)
 	}
 
 	public function status( $owner, $repo, $branch ) {
@@ -154,6 +154,32 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	public function status_page_css() {
 		wp_register_style( 'gp-localci', plugins_url( 'css/gp-localci.css', __FILE__ ) );
 		gp_enqueue_style( 'gp-localci' );
+	}
+
+	public function string_freeze_pot( $owner, $repo ) {
+		$gh_data = (object) array(
+			'owner' => $owner,
+			'repo' => $repo,
+		);
+
+		$this->gh->set_gh_data( $gh_data );
+
+		$po = new PO();
+		$prs = $this->gh->get_string_freeze_prs();
+		foreach ( $prs as $pr_number ) {
+			$gh_data->branch = $this->gh->get_pull_request_branch( $pr_number );
+			$po_file_for_branch = $this->ci->get_most_recent_pot( $gh_data );
+			if ( $po_file_for_branch ) {
+				$po->import_from_file( 'data://text/plain,' . urlencode( $po_file_for_branch ) );
+			}
+		}
+
+		if ( ! empty( $po->entries ) ) {
+			$this->headers_for_download( sanitize_file_name( $repo . '-string-freeze.pot' ) );
+			echo $po->export();
+		} else {
+			$this->die_with_error( 'No strings found', 404 );
+		}
 	}
 
 	/**
@@ -238,6 +264,7 @@ class GP_LocalCI {
 		GP::$router->add( '/localci/-relay-new-strings-to-gh', array( 'GP_Route_LocalCI', 'relay_new_strings_to_gh' ), 'post' );
 		GP::$router->add( '/localci/-relay-string-freeze-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_from_gh' ), 'post' );
 		GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
+		GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
 	}
 }
 

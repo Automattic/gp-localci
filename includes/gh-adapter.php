@@ -63,6 +63,7 @@ class GP_LocalCI_Github_Adapter {
 		if ( isset( $this->data->$key ) ) {
 			return $this->data->$key;
 		}
+		// TODO: log error
 	}
 
 	public function generate_webhook_signature( $owner, $repo ) {
@@ -74,17 +75,19 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	private function is_data_valid( $data ) {
-		if ( empty( $data->owner ) || empty( $data->repo )
-			|| empty( $data->branch ) ) {
+		if ( empty( $data->owner ) || empty( $data->repo ) ) {
 			return false;
 		}
 
-		if ( ! is_string( $data->owner ) || ! is_string( $data->repo )
-			 || ! is_string( $data->branch ) ) {
+		if ( ! is_string( $data->owner ) || ! is_string( $data->repo ) ) {
 			return false;
 		}
 
 		if ( ! empty( $data->sha ) && ( ! is_string( $data->sha ) ||  40 !== strlen( $data->sha ) ) ) {
+			return false;
+		}
+
+		if ( isset( $data->brach ) && ( ! is_string( $data->branch ) ) ) {
 			return false;
 		}
 
@@ -299,6 +302,12 @@ class GP_LocalCI_Github_Adapter {
 		$api_path = "/repos/{$this->owner}/{$this->repo}/issues?labels=" . urlencode( LOCALCI_GITHUB_STRING_FREEZE_LABEL );
 		$prs = json_decode( $this->api_get( $api_path, array(),  30 * MINUTE_IN_SECONDS ) );
 		return wp_list_pluck( wp_list_filter( $prs, array( 'pull_request' => null ), 'NOT' ), 'number' );
+	}
+
+	public function get_pull_request_branch( $pr_number ) {
+		$api_path = "/repos/{$this->owner}/{$this->repo}/pulls/{$pr_number}";
+		$pr = json_decode( $this->api_get( $api_path ) );
+		return $pr->head->ref;
 	}
 
 	/**
