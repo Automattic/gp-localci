@@ -236,17 +236,29 @@ class GP_LocalCI_Github_Adapter {
 				};
 			}
 
-			if ( $current_translation_count ) {
-				$message .= "Warning: $current_translation_count translations will be lost with this change.\n";
-			}
-
 			if ( $best_suggestion ) {
 				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 2 ) . '*' : '';
-				$message .= "Alternate string suggestion: \n* " . $this->format_string_for_comment( $best_suggestion ) . '&mdash; translations: **' . count( $best_suggestion['locales'] ) . "**.$score\n\n";
+				$translation_count_times = count( $best_suggestion['locales'] ) > 1 ? 'times' : 'time';
+				if ( $current_translation_count ) {
+					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
+					$message .= 'If the string must change, the following option has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
+				} else {
+					$message .= ':wave: I\'ve found a possible matching string that has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
+				}
+				$message .= $this->format_string_for_comment( $best_suggestion ) . $score . "\n";
+				if ( count( $suggestions ) ) {
+					$suggestions_count = count( $suggestions ) > 1 ? 'suggestions' : 'suggestion';
+					$message .= sprintf( "See %d additional %s in the [PR translation status page](%s)\n", count( $suggestions ), $suggestions_count, $status_page_url );
+				}
+
+				$message .= "\nHelp me improve these suggestions: react with :thumbsdown: if the suggestion doesn't make any sense, or with :thumbsup: if it's a particularly good one (even if not implemented).";
+			} else {
+				if ( $current_translation_count ) {
+					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
+				}
 			}
 
 			if ( '' !== $message ) {
-				$message .= "[PR translation status page]($status_page_url)";
 				$body = array(
 					'body' => $message,
 					'commit_id' => $this->sha,
