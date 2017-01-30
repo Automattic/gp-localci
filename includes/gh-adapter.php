@@ -310,7 +310,11 @@ class GP_LocalCI_Github_Adapter {
 	public function get_pull_request_branch( $pr_number ) {
 		$api_path = "/repos/{$this->owner}/{$this->repo}/pulls/{$pr_number}";
 		$pr = json_decode( $this->api_get( $api_path ) );
-		return $pr->head->ref;
+
+		$this->data->branch = $pr->head->ref;
+		$this->data->sha = $pr->head->sha;
+
+		return $this->data->branch;
 	}
 
 	/**

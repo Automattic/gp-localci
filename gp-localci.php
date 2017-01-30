@@ -191,6 +191,33 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		}
 	}
 
+	public function update_string_freeze_prs_status( $owner, $repo ) {
+		if ( ! $this->is_authorized_remote_action() ) {
+			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
+		}
+
+		$gh_data = (object) array(
+			'owner' => $owner,
+			'repo' => $repo,
+		);
+
+		$this->gh->set_gh_data( $gh_data );
+
+		$project_id  = GP_LocalCI_Config::get_value( $gh_data->owner, $gh_data->repo, 'gp_project_id' );
+		$prs = $this->gh->get_string_freeze_prs();
+
+		foreach ( $prs as $pr_number ) {
+			$gh_data->branch = $this->gh->get_pull_request_branch( $pr_number );
+			$po_file_for_branch = $this->ci->get_most_recent_pot( $gh_data );
+			$po         = localci_load_po( $po_file_for_branch );
+			$coverage   = $this->db->get_string_coverage( $po, $project_id );
+			$stats      = localci_generate_coverage_stats( $po, $coverage );
+
+			$pr_state = $this->pr_status_state( $stats, true );
+			$this->gh->post_to_status_api( $stats['summary'], $pr_state );
+		}
+	}
+
 	/**
 	 * The nitty gritty details
 	 */
@@ -279,6 +306,7 @@ class GP_LocalCI {
 			GP::$router->add( '/localci/-relay-string-freeze-change-from-gh', array( 'GP_Route_LocalCI', 'relay_string_freeze_change_from_gh' ), 'post' );
 			GP::$router->add( "/localci/status/$owner/$repo/$branch", array( 'GP_Route_LocalCI', 'status' ), 'get' );
 			GP::$router->add( "/localci/string-freeze-pot/$owner/$repo", array( 'GP_Route_LocalCI', 'string_freeze_pot' ), 'get' );
+			GP::$router->add( "/localci/update-string-freeze-status/$owner/$repo", array( 'GP_Route_LocalCI', 'update_string_freeze_prs_status' ), 'get' );
 		}
 	}
 }
