@@ -50,6 +50,10 @@ class GP_LocalCI_DB_Adapter {
 			return false;
 		}
 
+		$placeholders_re = apply_filters( 'gp_warning_placeholders_re', '%(\d+\$(?:\d+)?)?[bcdefgosuxEFGX]' );
+		preg_match_all( "/$placeholders_re/", $entry->singular . $entry->plural, $matches );
+		$original_placeholders = count( $matches[0] );
+
 		$hits = gp_es_find_similar( $entry );
 		if ( ! $hits ) {
 			return false;
@@ -58,6 +62,15 @@ class GP_LocalCI_DB_Adapter {
 		$suggestions = array();
 		foreach ( $hits as $hit ) {
 			$original = GP::$original->get( $hit['_id'] );
+
+			preg_match_all( "/$placeholders_re/", $original->singular . $original->plural, $matches );
+			$hit_placeholders = count( $matches[0] );
+
+			// Discard originals with different number of placeholders
+			if ( $hit_placeholders !== $original_placeholders ) {
+				continue;
+			}
+
 			$original_translations = $this->get_translations_for_original( $original->id );
 			$original = $this->existing_original_object( $original, $original_translations );
 			$original['score'] = $hit['_score'];
