@@ -229,7 +229,12 @@ class GP_LocalCI_Github_Adapter {
 
 			// Is this a string change, and our best suggestion is the previous string?
 			if ( gp_in( $best_suggestion['singular'], $lines[ $line_number - 1 ] ) ) {
-				$current_translation_count = count( $best_suggestion['locales'] );
+				// Will GlotPress discard the translations with this change?
+				if ( $this->translations_will_be_discarded( $string, $best_suggestion ) ) {
+					$current_translation_count = count( $best_suggestion['locales'] );
+					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
+				}
+
 				$best_suggestion = false;
 				if ( ! empty( $suggestions ) ) {
 					$best_suggestion = array_shift( $suggestions );
@@ -240,10 +245,9 @@ class GP_LocalCI_Github_Adapter {
 				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 2 ) . '*' : '';
 				$translation_count_times = count( $best_suggestion['locales'] ) > 1 ? 'times' : 'time';
 				if ( $current_translation_count ) {
-					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
 					$message .= 'If the string must change, the following option has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
 				} else {
-					$message .= ':wave: I\'ve found a possible matching string that has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
+					$message .= 'Hi! I\'ve found a possible matching string that has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
 				}
 				$message .= $this->format_string_for_comment( $best_suggestion ) . $score . "\n";
 				if ( count( $suggestions ) ) {
@@ -252,10 +256,6 @@ class GP_LocalCI_Github_Adapter {
 				}
 
 				$message .= "\nHelp me improve these suggestions: react with :thumbsdown: if the suggestion doesn't make any sense, or with :thumbsup: if it's a particularly good one (even if not implemented).";
-			} else {
-				if ( $current_translation_count ) {
-					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
-				}
 			}
 
 			if ( '' !== $message ) {
@@ -449,4 +449,47 @@ class GP_LocalCI_Github_Adapter {
 			'Authorization' => 'token ' . LOCALCI_GITHUB_API_MANAGEMENT_TOKEN,
 		);
 	}
+
+	/**
+	 * Compares two strings, and returns whether GlotPress will fuzzy the translations on import.
+	 * @param object|array $string1
+	 * @param object|array $string2
+	 *
+	 * @return bool
+	 */
+	private function translations_will_be_discarded( $string1, $string2 ) {
+		$min_score = apply_filters( 'gp_original_import_min_similarity_diff', 0.8 );
+		$string_similarity = gp_string_similarity(
+			$this->entry_key( $string1 ),
+			$this->entry_key( $string2 )
+		);
+
+		return $string_similarity < $min_score;
+	}
+
+	/**
+	 * Generates a PO entry key.
+	 * The entry key is what's used for string comparaisons in GP.
+	 *
+	 * @param object|array $entry
+	 *
+	 * @return bool|string
+	 */
+	private function entry_key( $entry ) {
+		if ( is_array( $entry ) ) {
+			$entry = (object) $entry;
+		}
+
+		if ( null === $entry->singular || '' === $entry->singular ) {
+			return false;
+		};
+
+		// Prepend context and EOT, like in MO files
+		$key = ! $entry->context ? $entry->singular : $entry->context . chr( 4 ) . $entry->singular;
+		// Standardize on \n line endings
+		$key = str_replace( array( "\r\n", "\r" ), "\n", $key );
+
+		return $key;
+	}
+
 }
