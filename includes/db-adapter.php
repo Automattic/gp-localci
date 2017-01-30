@@ -6,7 +6,7 @@ class GP_LocalCI_DB_Adapter {
 	}
 
 	private function get_cross_locale_translated_status( $po_entries, $project_id ) {
-		$translations = $existing_originals = $new_originals = array();
+		$existing_originals = $new_originals = array();
 
 		foreach ( $po_entries as $entry ) {
 			$original = GP::$original->by_project_id_and_entry( $project_id, $entry );
