@@ -128,6 +128,9 @@ function localci_translation_item( $project, $entry, $owner, $repo, $branch, $pr
 		$all_translations_link = gp_url_project( $project, '-all-translated/' . $entry['id'] );
 		$item .= '<span class="item-link translations-link"><a href="' . esc_url( $all_translations_link ) . '">' . sprintf( _n( '%d translation', '%d translations', count( $entry['locales'] ) ), count( $entry['locales'] ) ) . '</a></span>';
 	}
+	if ( ! empty( $entry['score'] ) ) {
+		$item .= '<span class="item-link score">ES score: ' . number_format( $entry['score'], 2 ) . '</span>';
+	}
 	$item .= '</div>';
 
 	if ( isset( $entry['suggestions'] ) ) {
