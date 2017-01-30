@@ -6,6 +6,7 @@ define( 'LOCALCI_GITHUB_API_URL', 'https://api.github.com' );
 define( 'LOCALCI_GITHUB_API_MANAGEMENT_TOKEN', '' );
 define( 'LOCALCI_GITHUB_USER_NAME', 'botname' );
 define( 'LOCALCI_GITHUB_STRING_FREEZE_LABEL', 'string freeze' );
+define( 'LOCALCI_REMOTE_ACTION_TOKEN', '' );
 
 class GP_LocalCI_Config {
 	public static $repo_metadata = array();

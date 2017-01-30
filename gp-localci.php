@@ -162,6 +162,10 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	public function string_freeze_pot( $owner, $repo ) {
+		if ( ! $this->is_authorized_remote_action() ) {
+			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
+		}
+
 		$gh_data = (object) array(
 			'owner' => $owner,
 			'repo' => $repo,
@@ -237,6 +241,10 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$state = ( 100 === absint( $stats['percent_translated'] ) ) ? 'success' : 'failure';
 
 		return $state;
+	}
+
+	private function is_authorized_remote_action() {
+		return defined( 'LOCALCI_REMOTE_ACTION_TOKEN' ) && LOCALCI_REMOTE_ACTION_TOKEN === $_REQUEST['token'];
 	}
 }
 
