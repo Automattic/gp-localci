@@ -52,7 +52,8 @@ class GP_LocalCI_DB_Adapter {
 
 		$placeholders_re = apply_filters( 'gp_warning_placeholders_re', '%(\d+\$(?:\d+)?)?[bcdefgosuxEFGX]' );
 		preg_match_all( "/$placeholders_re/", $entry->singular . $entry->plural, $matches );
-		$original_placeholders = count( $matches[0] );
+		$entry_placeholders = count( $matches[0] );
+		$entry_length = strlen( strip_tags( $entry->singular ) );
 
 		$hits = gp_es_find_similar( $entry );
 		if ( ! $hits ) {
@@ -63,11 +64,16 @@ class GP_LocalCI_DB_Adapter {
 		foreach ( $hits as $hit ) {
 			$original = GP::$original->get( $hit['_id'] );
 
+			// Discard suggestions where string length vary too much.
+			$hit_length = strlen( strip_tags( $original->singular ) );
+			if ( $hit_length < absint( ceil( 0.5 * $entry_length ) ) ||	$hit_length > absint( ceil( 2 * $entry_length ) ) ) {
+				continue;
+			}
+
+			// Discard originals with different number of placeholders.
 			preg_match_all( "/$placeholders_re/", $original->singular . $original->plural, $matches );
 			$hit_placeholders = count( $matches[0] );
-
-			// Discard originals with different number of placeholders
-			if ( $hit_placeholders !== $original_placeholders ) {
+			if ( $hit_placeholders !== $entry_placeholders ) {
 				continue;
 			}
 
@@ -75,7 +81,7 @@ class GP_LocalCI_DB_Adapter {
 			$original = $this->existing_original_object( $original, $original_translations );
 			$original['score'] = $hit['_score'];
 
-			// discard obsolete strings with no translations
+			// Discard obsolete strings with no translations.
 			// TODO: maybe implement in ES query
 			if ( '-obsolete' === $original['status'] && empty( $original['locales'] ) ) {
 				continue;
