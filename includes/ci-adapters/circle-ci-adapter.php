@@ -88,7 +88,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 			return false;
 		}
 
-		$artifact_file = $this->cached_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ), 5 * MINUTE_IN_SECONDS );
+		$artifact_file = $this->cached_get( esc_url_raw( $new_strings_artifact->url . "?circle-token={$token}" ) );
 
 		return $artifact_file;
 	}
