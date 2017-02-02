@@ -58,9 +58,12 @@ function localci_generate_coverage_summary( $num_strings, $new_strings = 0, $per
 		case $percent_translated > 25:
 			$summary .= "{$percent_translated}% already translated.";
 			break;
+		case $percent_translated <= 25 && $num_strings > $warning_threshold:
+			$summary .= "Only {$percent_translated}% already translated.";
+			break;
 		case $percent_translated <= 25:
-			$prefix = ( $num_strings > $warning_threshold ) ? ' Only ' : '';
-			$summary .= $prefix . "{$percent_translated}% already translated.";
+			$summary .= "{$percent_translated}% already translated.";
+			break;
 		case $percent_translated === '0':
 			$summary .= "Nothing translated yet.";
 	}
