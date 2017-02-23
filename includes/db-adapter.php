@@ -27,7 +27,9 @@ class GP_LocalCI_DB_Adapter {
 					'plural'     => $entry->plural,
 					'comment'    => $entry->extracted_comments,
 					'references' => implode( ' ', $entry->references ),
+					'context_message' => $this->context_checks( $entry, $project_id ),
 				);
+
 				$new_originals[] = $data;
 			}
 		}
@@ -39,6 +41,37 @@ class GP_LocalCI_DB_Adapter {
 		);
 
 		return $coverage;
+	}
+
+	private function context_checks( $entry, $project_id ) {
+		if ( ! $entry->context ) {
+			return false;
+		}
+
+		if ( str_word_count( $entry->singular ) > 4 ) {
+			return "This string is probably long enough that it doesn't need a **context**. Are you sure you don't want to use a translator comment instead?";
+		}
+
+		if ( str_word_count( $entry->context ) > 3 ) {
+			return "This **context** is really long. Are you sure you don't want to use a translator comment instead?";
+		}
+
+		$same_originals_excluding_context = GP::$original->find_many( array( 'singular' => $entry->singular, 'plural' => $entry->plural, 'status' => '+active', 'project_id' => $project_id ) );
+		if ( empty( $same_originals_excluding_context ) ) {
+			return "This string doesn't exist elsewhere without a **context** (or with a different one). You can probably drop the context. If needed, you can use a translator comment instead to clarify meaning.";
+		}
+
+		$contexts = array_unique( wp_list_pluck( $same_originals_excluding_context, 'context' ) );
+		if ( 1 === count( $contexts ) && is_null( $contexts[0] ) ) {
+			return 'This string already exists without a **context**. Only add a context if the meaning of the string is very specific.';
+		}
+
+		$context_message = 'This string already exists with the following **contexts**:';
+		foreach ( $contexts as $context ) {
+			$context_message .= is_null( $context ) ? "\n- `null` (no context)" : "\n- `$context`";
+		}
+		$context_message .= "\n\n Would it make sense to reuse one of the above?";
+		return $context_message;
 	}
 
 	private function filter_cross_locale_translated_status( $strings ) {

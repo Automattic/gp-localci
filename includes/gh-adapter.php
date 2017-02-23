@@ -158,7 +158,8 @@ class GP_LocalCI_Github_Adapter {
 
 		$diff = $this->get_pull_request_diff();
 		foreach ( $new_strings as $string ) {
-			if ( $string['suggestions'] ) {
+			if ( isset( $string['suggestions'] ) || isset( $string['context_message'] ) ) {
+				// Get the filename where this string was added
 				list( $file, $line ) = array_pad( explode( ':',
 					array_pop(
 						preg_split( '/\s+/', $string['references'], -1, PREG_SPLIT_NO_EMPTY )
@@ -172,7 +173,8 @@ class GP_LocalCI_Github_Adapter {
 					continue;
 				}
 
-				$comment = $this->pr_suggestion_comment( $matches[1][0], $string, $string['suggestions'], $file, $status_page_url );
+				// Build the comment
+				$comment = $this->pr_suggestion_comment( $matches[1][0], $string, $file, $status_page_url );
 				if ( ! $comment ) {
 					continue;
 				}
@@ -208,27 +210,32 @@ class GP_LocalCI_Github_Adapter {
 	 *
 	 * @param string $diff             Diff hunk for specific file.
 	 * @param array  $string           String that was added in the PR.
-	 * @param array  $suggestions      Suggestions for replacements for that string.
 	 * @param string $file             Filename where the string was added.
 	 * @param string $status_page_url  Url of the GlotPress status page for that PR.
 	 *
 	 * @return array|bool  Array containing data to be sent to Github api, or false if no suggestions.
 	 */
-	private function pr_suggestion_comment( $diff, $string, $suggestions, $file, $status_page_url ) {
+	private function pr_suggestion_comment( $diff, $string, $file, $status_page_url ) {
 		// Find the line number to comment on
 		$lines = explode( "\n", $diff );
 
-		$current_translation_count = false;
+		$string_change = $best_suggestion = $current_translation_count = false;
 		$message = '';
 
-		$best_suggestion = array_shift( $suggestions );
+
+		if ( is_array( $string['suggestions'] ) ) {
+			$suggestions = $string['suggestions'];
+			$best_suggestion = array_shift( $suggestions );
+		}
+
 		foreach ( $lines as $line_number => $line ) {
 			if ( ! gp_startswith( $line, '+' ) || ! gp_in( $string['singular'], $line )  ) {
 				continue;
 			}
 
 			// Is this a string change, and our best suggestion is the previous string?
-			if ( gp_in( $best_suggestion['singular'], $lines[ $line_number - 1 ] ) ) {
+			if ( $best_suggestion && gp_in( $best_suggestion['singular'], $lines[ $line_number - 1 ] ) ) {
+				$string_change = true;
 				// Will GlotPress discard the translations with this change?
 				if ( $this->translations_will_be_discarded( $string, $best_suggestion ) ) {
 					$current_translation_count = count( $best_suggestion['locales'] );
@@ -242,7 +249,7 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			if ( $best_suggestion ) {
-				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 2 ) . '*' : '';
+				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 0 ) . '*' : '';
 				$translation_count_times = count( $best_suggestion['locales'] ) > 1 ? 'times' : 'time';
 				if ( $current_translation_count ) {
 					$message .= 'If the string must change, the following option has already been translated **' . count( $best_suggestion['locales'] ) . "** {$translation_count_times}:\n";
@@ -256,6 +263,10 @@ class GP_LocalCI_Github_Adapter {
 				}
 
 				$message .= "\nHelp me improve these suggestions: react with :thumbsdown: if the suggestion doesn't make any sense, or with :thumbsup: if it's a particularly good one (even if not implemented).";
+			}
+
+			if ( $string['context_message'] && ! $string_change ) {
+				$message .= "\n\n:information_source: " . $string['context_message'];
 			}
 
 			if ( '' !== $message ) {
