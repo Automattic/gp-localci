@@ -133,11 +133,11 @@ class GP_LocalCI_Github_Adapter {
 	/**
 	 * Post string suggestions comments on Github PR.
 	 *
-	 * @param array  $coverage  Pre-calculated localci coverage data.
+	 * @param array  $new_strings List of new strings and their suggestions
 	 *
 	 * @return array Array containing numbers of new, edited, and existing comments on PR.
 	 */
-	public function post_suggestions_comments( $coverage ) {
+	public function post_suggestions_comments( $new_strings ) {
 		$owner_repo = $this->owner . '/' . $this->repo;
 
 		$existing_comments = $edited_comments = $new_comments = 0;
@@ -157,7 +157,7 @@ class GP_LocalCI_Github_Adapter {
 		}
 
 		$diff = $this->get_pull_request_diff();
-		foreach ( $coverage['new_strings'] as $string ) {
+		foreach ( $new_strings as $string ) {
 			if ( $string['suggestions'] ) {
 				list( $file, $line ) = array_pad( explode( ':',
 					array_pop(

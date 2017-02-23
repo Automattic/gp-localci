@@ -18,6 +18,7 @@ require __DIR__ . '/includes/localci-traits.php';
 require __DIR__ . '/includes/ci-adapters.php';
 require __DIR__ . '/includes/db-adapter.php';
 require __DIR__ . '/includes/gh-adapter.php';
+require __DIR__ . '/includes/es-adapter.php';
 require __DIR__ . '/includes/localci-functions.php';
 
 class GP_Route_LocalCI extends GP_Route_Main {
@@ -28,6 +29,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$this->ci = isset( $ci ) ? $ci : $this->get_ci_adapter( LOCALCI_BUILD_CI );
 		$this->db = isset( $db ) ? $db : new GP_LocalCI_DB_Adapter();
 		$this->gh = isset( $gh ) ? $gh : new GP_LocalCI_Github_Adapter();
+		$this->es = isset( $gh ) ? $gh : new GP_LocalCI_ES_Adapter();
 
 		$this->template_path = __DIR__ . '/templates/';
 	}
@@ -80,7 +82,9 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$pr_state = $this->pr_status_state( $stats, $this->gh->is_pr_in_string_freeze() );
 
 		$this->gh->post_to_status_api( $stats['summary'], $pr_state );
-		$comments = $this->gh->post_suggestions_comments( $coverage );
+
+		$new_strings_suggestions = $this->es->get_suggestions( $coverage['new_strings'] );
+		$comments = $this->gh->post_suggestions_comments( $new_strings_suggestions );
 
 		$this->log( 'result', 'relay-new-strings-to-gh-result', array( 'comments' => $comments, 'gh_data' => $gh_data, 'stats' => $stats, 'coverage' => $coverage ) );
 
@@ -151,6 +155,8 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$po         = localci_load_po( $po_file );
 		$coverage   = $this->db->get_string_coverage( $po, $project_id );
 		$stats      = localci_generate_coverage_stats( $po, $coverage );
+
+		$coverage['new_strings'] = $this->es->get_suggestions( $coverage['new_strings'] );
 
 		add_action( 'gp_head', array( $this, 'status_page_css' ) );
 		$this->tmpl( 'status-details', get_defined_vars() );

@@ -11,11 +11,13 @@ class GP_LocalCI_DB_Adapter {
 		foreach ( $po_entries as $entry ) {
 			$original = GP::$original->by_project_id_and_entry( $project_id, $entry );
 			if ( $original ) {
+				$original_array = $original->fields();
 				$original_translations = $this->get_translations_for_original( $original->id );
 				if ( empty( $original_translations ) && '-obsolete' === $original->status ) {
-					$new_originals[] = $original->fields();
+					$new_originals[] = $original_array;
 				} else {
-					$existing_originals[] = $this->existing_original_object( $original, $original_translations );
+					$original_array['locales'] = wp_list_pluck( $original_translations, 'locale' );
+					$existing_originals[] = $original_array;
 				}
 			} else {
 				$data = array(
@@ -26,12 +28,6 @@ class GP_LocalCI_DB_Adapter {
 					'comment'    => $entry->extracted_comments,
 					'references' => implode( ' ', $entry->references ),
 				);
-
-				$suggested_replacements = $this->get_suggested_replacements( $entry );
-				if ( $suggested_replacements ) {
-					$data['suggestions'] = $suggested_replacements;
-				}
-
 				$new_originals[] = $data;
 			}
 		}
@@ -43,71 +39,6 @@ class GP_LocalCI_DB_Adapter {
 		);
 
 		return $coverage;
-	}
-
-	private function get_suggested_replacements( $entry ) {
-		if ( ! function_exists( 'gp_es_find_similar' ) ) {
-			return false;
-		}
-
-		$placeholders_re = apply_filters( 'gp_warning_placeholders_re', '%(\d+\$(?:\d+)?)?[bcdefgosuxEFGX]' );
-		preg_match_all( "/$placeholders_re/", $entry->singular . $entry->plural, $matches );
-		$entry_placeholders = count( $matches[0] );
-		$entry_length = strlen( strip_tags( $entry->singular ) );
-
-		$hits = gp_es_find_similar( $entry );
-		if ( ! $hits ) {
-			return false;
-		}
-
-		$suggestions = array();
-		foreach ( $hits as $hit ) {
-			$original = GP::$original->get( $hit['_id'] );
-
-			// Discard suggestions where string length vary too much.
-			$hit_length = strlen( strip_tags( $original->singular ) );
-			if ( $hit_length < absint( ceil( 0.5 * $entry_length ) ) ||	$hit_length > absint( ceil( 2 * $entry_length ) ) ) {
-				continue;
-			}
-
-			// Discard originals with different number of placeholders.
-			preg_match_all( "/$placeholders_re/", $original->singular . $original->plural, $matches );
-			$hit_placeholders = count( $matches[0] );
-			if ( $hit_placeholders !== $entry_placeholders ) {
-				continue;
-			}
-
-			$original_translations = $this->get_translations_for_original( $original->id );
-			$original = $this->existing_original_object( $original, $original_translations );
-			$original['score'] = $hit['_score'];
-
-			// Discard obsolete strings with no translations.
-			// TODO: maybe implement in ES query
-			if ( '-obsolete' === $original['status'] && empty( $original['locales'] ) ) {
-				continue;
-			}
-
-			$suggestions[] = $original;
-		}
-
-		return $suggestions;
-	}
-
-	private function existing_original_object( $original, $original_translations ) {
-		$original = $original->fields();
-		$original['locales']  = array();
-		foreach ( $original_translations as $translation ) {
-			$translations[] = (object) array(
-				'original_id'    => $original['id'],
-				'context'        => $original['context'],
-				'singular'       => $original['singular'],
-				'plural'         => $original['plural'],
-				'translation_id' => $translation->id,
-				'locale'         => $translation->locale,
-			);
-			$original['locales'][] = $translation->locale;
-		}
-		return $original;
 	}
 
 	private function filter_cross_locale_translated_status( $strings ) {
