@@ -133,7 +133,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		if ( ! $po_file ) {
 			$this->log( 'error', 'ci-strings-file-not-found', func_get_args() );
-			$this->die_with_error( 'Unable to retrieve strings file from CI.', 400 );
+			$this->die_with_error( 'Unable to retrieve strings file from CI for this branch. This usually happens when the latest build failed.', 400 );
 		}
 
 		$pull_request = $this->gh->get_pull_request();
@@ -185,7 +185,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 
 		if ( ! empty( $po->entries ) ) {
 			$this->headers_for_download( sanitize_file_name( $repo . '-string-freeze.pot' ) );
-			echo $po->export();
+			echo $po->export(); //WPCS: XSS OK
 		} else {
 			$this->die_with_error( 'No strings found', 404 );
 		}
