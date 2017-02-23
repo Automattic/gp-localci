@@ -29,7 +29,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 		$this->ci = isset( $ci ) ? $ci : $this->get_ci_adapter( LOCALCI_BUILD_CI );
 		$this->db = isset( $db ) ? $db : new GP_LocalCI_DB_Adapter();
 		$this->gh = isset( $gh ) ? $gh : new GP_LocalCI_Github_Adapter();
-		$this->es = isset( $gh ) ? $gh : new GP_LocalCI_ES_Adapter();
+		$this->es = isset( $es ) ? $es : new GP_LocalCI_ES_Adapter();
 
 		$this->template_path = __DIR__ . '/templates/';
 	}
