@@ -219,23 +219,56 @@ class GP_LocalCI_Github_Adapter {
 		// Find the line number to comment on
 		$lines = explode( "\n", $diff );
 
+		// Set up some vars
 		$string_change = $best_suggestion = $current_translation_count = false;
 		$message = '';
-
-
 		if ( is_array( $string['suggestions'] ) ) {
 			$suggestions = $string['suggestions'];
 			$best_suggestion = array_shift( $suggestions );
 		}
 
+		// Since strings are sometimes joined over multiple lines, we don't want to look just at a single line
+		// Let's look into as many lines as it would take to fit 40 chars per line.
+		$max_number_of_lines = ceil( strlen( $string['singular'] ) / 40 );
+
+		// first words:
+		$words_in_string = explode( ' ', $string['singular'] );
+		$start_of_string = join( ' ', array_slice( $words_in_string, 0, 3 ) );
+
 		foreach ( $lines as $line_number => $line ) {
-			if ( ! gp_startswith( $line, '+' ) || ! gp_in( $string['singular'], $line )  ) {
+			// Looking for additions only
+			if ( ! gp_in( $start_of_string, $line ) || gp_startswith( $line, '-' ) ) {
+				continue;
+			}
+
+			// Since strings are sometimes joined over multiple lines, we don't want to look just at a single line
+			// Let's look into as many lines as it would take to fit 40 chars per line.
+			$search_lines = array();
+
+			$i = 0;
+			while ( ( $line_number + $i <= count( $lines ) ) && ( count( $search_lines ) < $max_number_of_lines ) ) {
+				// We only search for additions or existing code
+				// Existing: because it's possible that only part of a multi-line string has changed
+				if ( ! gp_startswith( $lines[ $line_number + $i ], '-' ) ) {
+					$search_lines[] = $lines[ $line_number + $i ];
+				}
+				$i++;
+			}
+
+			// To simplify our regex, we use a custom character combination instead of new lines.
+			$search_in = implode( '_N_', $search_lines );
+			$search_in = preg_replace( '/([\'|"]\s?\+_N_\+?\s+[\'|"])/', '', wp_unslash( $search_in ) );
+
+			if ( ! gp_in( $string['singular'], $search_in )  ) {
 				continue;
 			}
 
 			// Is this a string change, and our best suggestion is the previous string?
-			// See ee if our suggestion exists in the previous 5 lines of the diff.
-			$lines_range = array_slice( $lines, $line_number - 6, 5 );
+			// Check by trying to match our best suggestion in the previous (max) 5 lines of the diff hunk.
+			$start_at_line     = max( $line_number - 5, 0 );
+			$number_of_lines   = min( 5, $line_number );
+			$lines_range       = array_slice( $lines, $start_at_line, $number_of_lines );
+
 			if ( $best_suggestion && $this->string_in_array( $best_suggestion['singular'], $lines_range ) ) {
 				$string_change = true;
 				// Will GlotPress discard the translations with this change?
@@ -252,6 +285,7 @@ class GP_LocalCI_Github_Adapter {
 				}
 			}
 
+			// Not a string change, or we have an additional suggestion
 			if ( $best_suggestion ) {
 				$score = isset( $best_suggestion['score'] ) ? ' *ES Score: ' . number_format( $best_suggestion['score'], 0 ) . '*' : '';
 				$translation_count_times = count( $best_suggestion['locales'] ) > 1 ? 'times' : 'time';
