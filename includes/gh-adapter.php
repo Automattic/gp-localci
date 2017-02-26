@@ -234,18 +234,22 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			// Is this a string change, and our best suggestion is the previous string?
-			if ( $best_suggestion && gp_in( $best_suggestion['singular'], $lines[ $line_number - 1 ] ) ) {
+			// See ee if our suggestion exists in the previous 5 lines of the diff.
+			$lines_range = array_slice( $lines, $line_number - 6, 5 );
+			if ( $best_suggestion && $this->string_in_array( $best_suggestion['singular'], $lines_range ) ) {
 				$string_change = true;
 				// Will GlotPress discard the translations with this change?
+				$current_translation_count = count( $best_suggestion['locales'] );
 				if ( $this->translations_will_be_discarded( $string, $best_suggestion ) ) {
-					$current_translation_count = count( $best_suggestion['locales'] );
+					$best_suggestion = false;
 					$message .= ":disappointed: $current_translation_count existing translations will be lost with this change.\n";
+					if ( ! empty( $suggestions ) ) {
+						$best_suggestion = array_shift( $suggestions );
+					};
+				} else {
+					$best_suggestion = false;
+					$message .= ":ok: This change is safe, we'll keep the existing $current_translation_count translations.\n";
 				}
-
-				$best_suggestion = false;
-				if ( ! empty( $suggestions ) ) {
-					$best_suggestion = array_shift( $suggestions );
-				};
 			}
 
 			if ( $best_suggestion ) {
@@ -429,6 +433,9 @@ class GP_LocalCI_Github_Adapter {
 	 *
 	 * @param string $path Path to send to.
 	 * @param mixed  $body  Body of request.
+	 *
+	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+	 *                        A WP_Error instance upon error.
 	 */
 	private function api_patch( $path, $body ) {
 		$this->log( 'remote-request', 'github', array(
@@ -463,16 +470,22 @@ class GP_LocalCI_Github_Adapter {
 
 	/**
 	 * Compares two strings, and returns whether GlotPress will fuzzy the translations on import.
-	 * @param object|array $string1
-	 * @param object|array $string2
+	 * @param object|array $new_string
+	 * @param object|array $existing_string
 	 *
 	 * @return bool
 	 */
-	private function translations_will_be_discarded( $string1, $string2 ) {
+	private function translations_will_be_discarded( $new_string, $existing_string ) {
+		// If the existing string exists in more than one file, it will be kept,
+		// And we'll end up with a new string
+		if ( count( preg_split( '/\s+/', $existing_string['references'], -1, PREG_SPLIT_NO_EMPTY ) ) > 1 ) {
+			return true;
+		}
+
 		$min_score = apply_filters( 'gp_original_import_min_similarity_diff', 0.8 );
 		$string_similarity = gp_string_similarity(
-			$this->entry_key( $string1 ),
-			$this->entry_key( $string2 )
+			$this->entry_key( $new_string ),
+			$this->entry_key( $existing_string )
 		);
 
 		return $string_similarity < $min_score;
@@ -480,7 +493,7 @@ class GP_LocalCI_Github_Adapter {
 
 	/**
 	 * Generates a PO entry key.
-	 * The entry key is what's used for string comparaisons in GP.
+	 * The entry key is what's used for string comparisons in GP.
 	 *
 	 * @param object|array $entry
 	 *
@@ -501,6 +514,23 @@ class GP_LocalCI_Github_Adapter {
 		$key = str_replace( array( "\r\n", "\r" ), "\n", $key );
 
 		return $key;
+	}
+
+	/**
+	 * Find a string in an array of strings.
+	 * @param string $needle The string to look for.
+	 * @param array $lines Array of strings.
+	 *
+	 * @return bool The string is in the array or not.
+	 */
+	private function string_in_array( $needle, $lines ) {
+		foreach ( $lines as $line ) {
+			if ( gp_in( $needle, $line ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
