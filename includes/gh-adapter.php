@@ -259,7 +259,7 @@ class GP_LocalCI_Github_Adapter {
 			$search_in = implode( '_N_', $search_lines );
 			$search_in = preg_replace( '/([\'|"]\s?\+_N_\+?\s+[\'|"])/', '', wp_unslash( $search_in ) );
 
-			if ( ! gp_in( $string['singular'], $search_in )  ) {
+			if ( ! preg_match( '/[\'"]' . preg_quote( $string['singular'], '/' ) . '[\'"]/', $search_in ) ) {
 				continue;
 			}
 
