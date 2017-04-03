@@ -11,7 +11,8 @@ gp_tmpl_header();
 		<?php if ( ! empty( $coverage['new_strings'] ) || ! empty( $coverage['existing_strings'] ) ) : ?>
 		<h3>Details</h3><div>
 			<?php if ( ! empty( $coverage['new_strings'] ) ) : ?>
-			<h5>New and untranslated strings</h5>
+			<?php $string_freeze_label = $coverage['string_freeze'] ? ' (string freeze initiated)' : ''; ?>
+			<h5>New and untranslated strings<?php echo esc_html( $string_freeze_label ); ?></h5>
 				<ul class="strings new-strings">
 			<?php
 			foreach ( $coverage['new_strings'] as $new_string ) {

@@ -9,6 +9,15 @@ class GP_LocalCI_ES_Adapter {
 
 	public function get_suggestions( $new_strings ) {
 		foreach ( $new_strings as $key => $entry ) {
+			if ( is_array( $entry ) ) {
+				$entry = (object) $entry;
+			}
+
+			// Don't get suggestions for existing strings
+			if ( isset( $entry->id ) && $entry->id ) {
+				continue;
+			}
+
 			$suggested_replacements = $this->get_suggested_replacements( $entry );
 			if ( $suggested_replacements ) {
 				$new_strings[ $key ]['suggestions'] = $suggested_replacements;
@@ -20,10 +29,6 @@ class GP_LocalCI_ES_Adapter {
 	private function get_suggested_replacements( $entry ) {
 		if ( ! function_exists( 'gp_es_find_similar' ) ) {
 			return false;
-		}
-
-		if ( is_array( $entry ) ) {
-			$entry = (object) $entry;
 		}
 
 		$placeholders_re = apply_filters( 'gp_warning_placeholders_re', '%(\d+\$(?:\d+)?)?[bcdefgosuxEFGX]' );
@@ -38,6 +43,7 @@ class GP_LocalCI_ES_Adapter {
 
 		$suggestions = array();
 		foreach ( $hits as $hit ) {
+			$original['id'] = $hit['_source']['original_id'];
 			$original = $hit['_source']['original'];
 
 			// Discard suggestions where string length vary too much.

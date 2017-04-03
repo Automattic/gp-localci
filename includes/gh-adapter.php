@@ -363,7 +363,7 @@ class GP_LocalCI_Github_Adapter {
 	}
 
 	public function get_string_freeze_prs() {
-		$api_path = "/repos/{$this->owner}/{$this->repo}/issues?labels=" . urlencode( LOCALCI_GITHUB_STRING_FREEZE_LABEL );
+		$api_path = "/repos/{$this->owner}/{$this->repo}/issues?state=open&labels=" . urlencode( LOCALCI_GITHUB_STRING_FREEZE_LABEL );
 		$prs = json_decode( $this->api_get( $api_path, array(),  30 * MINUTE_IN_SECONDS ) );
 		return wp_list_pluck( wp_list_filter( $prs, array( 'pull_request' => null ), 'NOT' ), 'number' );
 	}

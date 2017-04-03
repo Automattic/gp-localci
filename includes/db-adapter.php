@@ -10,16 +10,24 @@ class GP_LocalCI_DB_Adapter {
 
 	private function get_cross_locale_translated_status( $po_entries, $project_id ) {
 		$existing_originals = $new_originals = array();
+		$string_freeze = false;
 
 		foreach ( $po_entries as $entry ) {
 			$original = GP::$original->by_project_id_and_entry( $project_id, $entry );
 			if ( $original ) {
 				$original_array = $original->fields();
 				$original_translations = $this->get_translations_for_original( $original->id );
-				if ( empty( $original_translations ) && '-obsolete' === $original->status ) {
+				$translation_locales = wp_list_pluck( $original_translations, 'locale' );
+				$missing_locales = array_diff( LOCALCI_DESIRED_LOCALES, $translation_locales );
+				$comments = explode( "\n", $original_array['comment'] );
+				// Partially or fully untranslated, and has a string freeze comment:
+				if ( ! empty( $missing_locales ) && in_array( 'status: string-freeze',  $comments, true ) ) {
+					$string_freeze = true;
+					$new_originals[] = $original_array;
+				} elseif ( empty( $original_translations ) && '-obsolete' === $original->status ) {
 					$new_originals[] = $original_array;
 				} else {
-					$original_array['locales'] = wp_list_pluck( $original_translations, 'locale' );
+					$original_array['locales'] = $translation_locales;
 					$existing_originals[] = $original_array;
 				}
 			} else {
@@ -40,6 +48,7 @@ class GP_LocalCI_DB_Adapter {
 		$coverage = array(
 			'new_strings' => $new_originals,
 			'existing_strings' => $existing_originals,
+			'string_freeze' => $string_freeze,
 			'translations' => $this->filter_cross_locale_translated_status( array_merge( $new_originals, $existing_originals ) ),
 		);
 
