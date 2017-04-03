@@ -263,7 +263,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 	}
 
 	private function has_lock_expired( $sha_lock_time ) {
-		return time() > $sha_lock_time + HOUR_IN_SECONDS;
+		return time() > $sha_lock_time + 5 * MINUTE_IN_SECONDS;
 	}
 
 	private function pr_status_state( $stats, $string_freeze = false ) {
