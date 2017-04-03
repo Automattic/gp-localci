@@ -191,7 +191,11 @@ class GP_Route_LocalCI extends GP_Route_Main {
 					$pr_po->add_comment_to_entry( $entry, '#.status: string-freeze' );
 					$pr_po->add_comment_to_entry( $entry, '#.pr: ' . "https://github.com/$owner/$repo/pull/$pr_number" );
 				}
-				$po->merge_with( $pr_po );
+				if ( empty ( $po->entries ) ) {
+					$po = $pr_po;
+				} else {
+					$po->merge_with( $pr_po );
+				}
 			}
 		}
 
