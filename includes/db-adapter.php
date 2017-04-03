@@ -1,5 +1,8 @@
 <?php
 class GP_LocalCI_DB_Adapter {
+
+	use GP_Localci_Log;
+
 	public function get_string_coverage( $po_obj_or_file, $project_id  ) {
 		$po = localci_load_po( $po_obj_or_file );
 		return $this->get_cross_locale_translated_status( $po->entries, $project_id );
