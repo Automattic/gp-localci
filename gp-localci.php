@@ -185,7 +185,13 @@ class GP_Route_LocalCI extends GP_Route_Main {
 			$gh_data->branch = $this->gh->get_pull_request_branch( $pr_number );
 			$po_file_for_branch = $this->ci->get_most_recent_pot( $gh_data );
 			if ( $po_file_for_branch ) {
-				$po->import_from_file( 'data://text/plain,' . urlencode( $po_file_for_branch ) );
+				$pr_po = new PO();
+				$pr_po->import_from_file( 'data://text/plain,' . urlencode( $po_file_for_branch ) );
+				foreach ( $pr_po->entries as $entry ) {
+					$pr_po->add_comment_to_entry( $entry, '#.status: string-freeze' );
+					$pr_po->add_comment_to_entry( $entry, '#.pr: ' . "https://github.com/$owner/$repo/pull/$pr_number" );
+				}
+				$po->merge_with( $pr_po );
 			}
 		}
 
