@@ -169,8 +169,8 @@ class GP_Route_LocalCI extends GP_Route {
 		gp_enqueue_style( 'gp-localci' );
 	}
 
-	public function string_freeze_pot( $owner, $repo ) {
-		if ( ! $this->is_authorized_remote_action() ) {
+	public function string_freeze_pot( $owner, $repo, $locale_export = false ) {
+		if ( ! $locale_export && ! $this->is_authorized_remote_action() ) {
 			$this->die_with_error( __( "Yer not 'spose ta be here." ), 403 );
 		}
 
@@ -199,6 +199,10 @@ class GP_Route_LocalCI extends GP_Route {
 					$po->merge_with( $pr_po );
 				}
 			}
+		}
+
+		if ( $locale_export ) {
+			return $po->export();
 		}
 
 		if ( ! empty( $po->entries ) ) {
