@@ -23,6 +23,7 @@ class GP_LocalCI_DB_Adapter {
 				// Partially or fully untranslated, and has a string freeze comment:
 				if ( ! empty( $missing_locales ) && in_array( 'status: string-freeze',  $comments, true ) ) {
 					$string_freeze = true;
+					$original_array['locales'] = $translation_locales;
 					$new_originals[] = $original_array;
 				} elseif ( empty( $original_translations ) && '-obsolete' === $original->status ) {
 					$new_originals[] = $original_array;
