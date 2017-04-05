@@ -21,9 +21,11 @@ require __DIR__ . '/includes/gh-adapter.php';
 require __DIR__ . '/includes/es-adapter.php';
 require __DIR__ . '/includes/localci-functions.php';
 
-class GP_Route_LocalCI extends GP_Route_Main {
+class GP_Route_LocalCI extends GP_Route {
 
 	use GP_Localci_Log;
+
+	var $ci, $db, $gh, $es;
 
 	public function __construct( $ci = null, $db = null, $gh = null ) {
 		$this->ci = isset( $ci ) ? $ci : $this->get_ci_adapter( LOCALCI_BUILD_CI );
@@ -191,7 +193,7 @@ class GP_Route_LocalCI extends GP_Route_Main {
 					$pr_po->add_comment_to_entry( $entry, '#.status: string-freeze' );
 					$pr_po->add_comment_to_entry( $entry, '#.pr: ' . "https://github.com/$owner/$repo/pull/$pr_number" );
 				}
-				if ( empty ( $po->entries ) ) {
+				if ( empty( $po->entries ) ) {
 					$po = $pr_po;
 				} else {
 					$po->merge_with( $pr_po );
