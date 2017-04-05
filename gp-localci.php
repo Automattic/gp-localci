@@ -202,6 +202,9 @@ class GP_Route_LocalCI extends GP_Route {
 		}
 
 		if ( $locale_export ) {
+			if ( empty( $po->entries ) ) {
+				return false;
+			}
 			return $po->export();
 		}
 
