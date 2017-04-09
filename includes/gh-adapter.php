@@ -158,7 +158,7 @@ class GP_LocalCI_Github_Adapter {
 
 		$diff = $this->get_pull_request_diff();
 		foreach ( $new_strings as $string ) {
-			if ( isset( $string['suggestions'] ) || isset( $string['context_message'] ) ) {
+			if ( isset( $string['suggestions'] ) || isset( $string['messages'] ) ) {
 				// Get the filename where this string was added
 				list( $file, $line ) = array_pad( explode( ':',
 					array_pop(
@@ -303,8 +303,13 @@ class GP_LocalCI_Github_Adapter {
 				$message .= "\nHelp me improve these suggestions: react with :thumbsdown: if the suggestion doesn't make any sense, or with :thumbsup: if it's a particularly good one (even if not implemented).";
 			}
 
-			if ( $string['context_message'] && ! $string_change ) {
-				$message .= "\n\n:information_source: " . $string['context_message'];
+			if ( $string['messages'] ) {
+				if ( $string['messages']['contex'] && ! $string_change ) {
+					$message .= "\n\n:information_source: " . $string['messages']['context'];
+				}
+				if ( $string['messages']['whitespace'] ) {
+					$message .= "\n\n:information_source: " . $string['messages']['whitespace'];
+				}
 			}
 
 			if ( '' !== $message ) {

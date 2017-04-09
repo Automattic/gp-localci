@@ -39,7 +39,7 @@ class GP_LocalCI_DB_Adapter {
 					'plural'     => $entry->plural,
 					'comment'    => $entry->extracted_comments,
 					'references' => implode( ' ', $entry->references ),
-					'context_message' => $this->context_checks( $entry, $project_id ),
+					'messages' => $this->string_checks( $entry, $project_id ),
 				);
 
 				$new_originals[] = $data;
@@ -54,6 +54,43 @@ class GP_LocalCI_DB_Adapter {
 		);
 
 		return $coverage;
+	}
+
+	private function string_checks( $entry, $project_id ) {
+		$context_message = $this->context_checks( $entry, $project_id );
+		$whitespace_message = $this->whitespace_check( $entry );
+
+		if ( ! $context_message && ! $whitespace_message ) {
+			return null;
+		}
+
+		return array(
+			'context' => $context_message,
+			'whitespace' => $whitespace_message,
+		);
+	}
+
+	private function whitespace_check( $entry ) {
+		$rtrimmed_singular = rtrim( $entry->singular );
+		$ltrimmed_singular = ltrim( $entry->singular );
+
+		$r_whitespace = $rtrimmed_singular !== $entry->singular;
+		$l_whitespace = $ltrimmed_singular !== $entry->singular;
+
+
+		if ( ! $r_whitespace && ! $l_whitespace ) {
+			return false;
+		}
+
+		if ( $r_whitespace && $l_whitespace ) {
+			return 'Whitespace detected at both ends of the string. If this string is being concatenated with something else, please use components instead.';
+		}
+
+		if ( $l_whitespace ) {
+			return 'Whitespace detected at the start of the string. Is this intentional?';
+		}
+
+		return 'Whitespace detected at the end of the string. Is this intentional?';
 	}
 
 	private function context_checks( $entry, $project_id ) {
