@@ -264,10 +264,13 @@ class GP_LocalCI_Github_Adapter {
 			}
 
 			// Is this a string change, and our best suggestion is the previous string?
-			// Check by trying to match our best suggestion in the previous (max) 5 lines of the diff hunk.
+			// Check by trying to match our best suggestion in the previous (max) 5 lines of deleted lines the diff hunk.
 			$start_at_line     = max( $line_number - 5, 0 );
 			$number_of_lines   = min( 5, $line_number );
 			$lines_range       = array_slice( $lines, $start_at_line, $number_of_lines );
+			$lines_range = array_filter( $lines_range, function( $line ){
+				return wp_startswith( $line, '-' );
+			});
 
 			if ( $best_suggestion && $this->string_in_array( $best_suggestion['singular'], $lines_range ) ) {
 				$string_change = true;
