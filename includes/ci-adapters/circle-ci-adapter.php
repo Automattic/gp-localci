@@ -78,7 +78,7 @@ class GP_LocalCI_CircleCI_Adapter implements GP_LocalCI_CI_Adapter {
 		}
 
 		foreach ( $artifacts as $artifact ) {
-			if ( '$CIRCLE_ARTIFACTS/translate/localci-new-strings.pot' === $artifact->pretty_path ) {
+			if ( wp_in( 'localci-new-strings.pot', $artifact->pretty_path ) ) {
 				$new_strings_artifact = $artifact;
 				break;
 			}
