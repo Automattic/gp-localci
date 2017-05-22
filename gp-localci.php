@@ -64,7 +64,6 @@ class GP_Route_LocalCI extends GP_Route {
 		if ( false === $po_file || false === $project_id ) {
 			$this->die_with_error( 'Invalid GlotPress data.', 400 );
 		}
-		$this->gh->post_to_status_api( 'Processing...', 'pending' );
 
 		if ( '' === $po_file ) {
 			$this->tmpl( 'status-ok' );
@@ -78,6 +77,7 @@ class GP_Route_LocalCI extends GP_Route {
 			exit;
 		}
 
+		$this->gh->post_to_status_api( 'Processing...', 'pending' );
 		$coverage  = $this->db->get_string_coverage( $po, $project_id );
 		$stats     = localci_generate_coverage_stats( $po, $coverage );
 
