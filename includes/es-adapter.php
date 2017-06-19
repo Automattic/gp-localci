@@ -161,7 +161,7 @@ class GP_LocalCI_ES_Adapter {
 		$contractions_split = preg_split( '/(' . $contractions_regex . ')/', $lc_target, -1, PREG_SPLIT_DELIM_CAPTURE );
 
 		// 3. Combine the array into a string, then split it again into words. Example result: ['This', 'is', 'my', 'dog', '\'s', 'bone']
-		$lc_target_array = preg_split( '/\W+/', implode( ' ', $contractions_split ), -1, PREG_SPLIT_NO_EMPTY );
+		$lc_target_array = preg_split( '/[^\w\']/', implode( ' ', $contractions_split ), -1, PREG_SPLIT_NO_EMPTY );
 
 		$basis_morphology = $this->rosette_api_morphology( $basis );
 		$basis_syntax = $this->rosette_api_syntax_dependencies( $basis );
