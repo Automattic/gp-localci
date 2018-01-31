@@ -5,8 +5,8 @@ class GP_Route_Main {
 		throw new Exception( $arg1 );
 	}
 
-	function die_with_error( $arg1, $arg2 ) {
-		throw new Exception( $arg1, $arg2 );
+	function die_with_error( $message, $status = 500 ) {
+		throw new Exception( $message, $status );
 	}
 }
 
