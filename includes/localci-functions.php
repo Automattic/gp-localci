@@ -23,9 +23,9 @@ function localci_generate_coverage_stats( $po_obj_or_file, $coverage ) {
 	$num_translated = array_sum( $coverage['translations'] );
 
 	$stats['num_strings'] = count( $po->entries );
-	$stats['new_strings'] = count( $coverage['new_strings'] );
+	$stats['new_strings'] = $coverage['new_strings'];
 	$stats['percent_translated'] = localci_generate_coverage_percent_translated( $stats['num_strings'], $num_translated );
-	$stats['summary'] = localci_generate_coverage_summary( $stats['num_strings'], $stats['new_strings'], $stats['percent_translated'] );
+	$stats['summary'] = localci_generate_coverage_summary( $stats['num_strings'], count( $stats['new_strings'] ), $stats['percent_translated'] );
 
 	return $stats;
 }
