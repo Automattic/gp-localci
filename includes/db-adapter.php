@@ -106,8 +106,8 @@ class GP_LocalCI_DB_Adapter {
 		global $wpdb;
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT t.id, tset.locale FROM gp_translations as t
-				 JOIN gp_translation_sets as tset on t.translation_set_id = tset.id
+				"SELECT t.id, IF( ts.slug != 'default', CONCAT( ts.locale, '/', ts.slug ), ts.locale ) AS locale FROM gp_translations as t
+				 JOIN gp_translation_sets as ts on t.translation_set_id = ts.id
 				 WHERE t.original_id = %d AND t.status = 'current'", $original_id
 			)
 		);
